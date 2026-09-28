@@ -1,0 +1,66 @@
+{
+  "name": "shopify-admin",
+  "version": "1.0.0",
+  "title": "Shopify Store Operations",
+  "description": "Governed order management, refunds, and fulfillment with human-in-the-loop approvals.",
+  "secrets": [
+    { "name": "SHOPIFY_STORE_DOMAIN", "label": "Store Domain (e.g., store.myshopify.com)" },
+    { "name": "SHOPIFY_ACCESS_TOKEN", "label": "Admin API Access Token" }
+  ],
+  "actions": [
+    {
+      "name": "create_refund",
+      "title": "Issue Refund",
+      "description": "Calculates and executes a refund on an existing order.",
+      "inputs": {
+        "order_id": { "type": "string", "label": "Shopify Order ID", "required": true },
+        "amount": { "type": "string", "label": "Refund Amount", "required": true },
+        "currency": { "type": "string", "label": "Currency Code", "default": "USD" },
+        "note": { "type": "string", "label": "Refund Reason / Note" },
+        "restock": { "type": "boolean", "label": "Restock Items", "default": true }
+      }
+    },
+    {
+      "name": "cancel_order",
+      "title": "Cancel Order",
+      "description": "Cancels an open order and releases authorizations.",
+      "inputs": {
+        "order_id": { "type": "string", "label": "Shopify Order ID", "required": true },
+        "reason": { "type": "string", "label": "Cancellation Reason", "enum": ["customer", "inventory", "fraud", "other"] }
+      }
+    },
+    {
+      "name": "create_fulfillment",
+      "title": "Fulfill Line Items",
+      "inputs": {
+        "order_id": { "type": "string", "label": "Order ID", "required": true },
+        "tracking_number": { "type": "string", "label": "Tracking Number" },
+        "tracking_company": { "type": "string", "label": "Carrier Name" }
+      }
+    },
+    {
+      "name": "add_order_tags",
+      "title": "Tag Order",
+      "inputs": {
+        "order_id": { "type": "string", "label": "Order ID", "required": true },
+        "tags": { "type": "string", "label": "Comma-separated Tags", "required": true }
+      }
+    },
+    {
+      "name": "update_inventory",
+      "title": "Update Inventory Level",
+      "inputs": {
+        "inventory_item_id": { "type": "string", "label": "Inventory Item ID", "required": true },
+        "location_id": { "type": "string", "label": "Location ID", "required": true },
+        "available": { "type": "number", "label": "New Available Quantity", "required": true }
+      }
+    },
+    {
+      "name": "get_order",
+      "title": "Get Order Details",
+      "inputs": {
+        "order_id": { "type": "string", "label": "Order ID", "required": true }
+      }
+    }
+  ]
+}

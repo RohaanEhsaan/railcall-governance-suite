@@ -1,0 +1,39 @@
+{
+  "name": "stripe-governance",
+  "version": "1.0.0",
+  "title": "Stripe Financial Governance Airlock",
+  "description": "Enterprise-grade financial airlock for Stripe mutations (refunds, voids, credits, cancellations) with cryptographic audit receipts. contest:round2",
+  "author": "Rohan",
+  "category": "Payments & Finance",
+  "auth": {
+    "type": "bearer",
+    "secret_key": "STRIPE_SECRET_KEY"
+  },
+  "capabilities": [
+    {
+      "action": "refund_charge",
+      "side_effect": "external_mutation",
+      "description": "Previews and issues a Stripe charge refund"
+    },
+    {
+      "action": "void_invoice",
+      "side_effect": "external_mutation",
+      "description": "Voids an open Stripe invoice"
+    },
+    {
+      "action": "cancel_subscription",
+      "side_effect": "external_mutation",
+      "description": "Terminates an active subscription immediately or at period end"
+    },
+    {
+      "action": "adjust_credit_balance",
+      "side_effect": "external_mutation",
+      "description": "Adjusts a customer's ledger balance"
+    },
+    {
+      "action": "get_customer_overview",
+      "side_effect": "read_only",
+      "description": "Fetches verified customer balance and status"
+    }
+  ]
+}

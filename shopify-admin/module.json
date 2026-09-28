@@ -1,0 +1,403 @@
+{
+  "name": "shopify-admin",
+  "version": "1.2.22",
+  "category": "Finance",
+  "author": "Rohan",
+  "description": "Autonomous governance airlock for Shopify Admin REST API featuring anti-drift state locks, stock floor protection, and deterministic preflight previews. contest:round2",
+  "secrets": [
+    {
+      "name": "SHOPIFY_SHOP_DOMAIN",
+      "label": "Shopify Store Domain (your-store.myshopify.com)"
+    },
+    {
+      "name": "SHOPIFY_ACCESS_TOKEN",
+      "label": "Shopify Admin API Access Token (shpat_...)"
+    }
+  ],
+  "commands": [
+    {
+      "id": "shopify.verify_shopify_connection",
+      "name": "verify_shopify_connection",
+      "title": "Verify Shopify Connection",
+      "description": "Probes Shopify shop metadata, currency, rate limit status, and airlock operational health.",
+      "inputs": {},
+      "input_schema": {},
+      "requires": [
+        "SHOPIFY_SHOP_DOMAIN",
+        "SHOPIFY_ACCESS_TOKEN"
+      ],
+      "provider": "shopify"
+    },
+    {
+      "id": "shopify.get_order",
+      "name": "get_order",
+      "title": "Inspect Order Details",
+      "description": "Extracts detailed order status, financial status, fulfillment state, and line item counts.",
+      "inputs": {
+        "order_id": {
+          "type": "string",
+          "label": "Order ID",
+          "required": true,
+          "help": "Order ID"
+        }
+      },
+      "input_schema": {
+        "order_id": {
+          "type": "string",
+          "label": "Order ID",
+          "required": true,
+          "help": "Order ID"
+        }
+      },
+      "requires": [
+        "SHOPIFY_SHOP_DOMAIN",
+        "SHOPIFY_ACCESS_TOKEN"
+      ],
+      "provider": "shopify"
+    },
+    {
+      "id": "shopify.list_orders",
+      "name": "list_orders",
+      "title": "List Store Orders",
+      "description": "Query recent orders filtered by status for pre-mutation discovery.",
+      "inputs": {
+        "status": {
+          "type": "string",
+          "label": "Order Status (open, closed, any)",
+          "default": "any",
+          "help": "Order Status (open, closed, any)"
+        },
+        "limit": {
+          "type": "string",
+          "label": "Max Orders",
+          "default": 10,
+          "help": "Max Orders"
+        }
+      },
+      "input_schema": {
+        "status": {
+          "type": "string",
+          "label": "Order Status (open, closed, any)",
+          "default": "any",
+          "help": "Order Status (open, closed, any)"
+        },
+        "limit": {
+          "type": "string",
+          "label": "Max Orders",
+          "default": 10,
+          "help": "Max Orders"
+        }
+      },
+      "requires": [
+        "SHOPIFY_SHOP_DOMAIN",
+        "SHOPIFY_ACCESS_TOKEN"
+      ],
+      "provider": "shopify"
+    },
+    {
+      "id": "shopify.create_refund",
+      "name": "create_refund",
+      "title": "Create Order Refund (Drift-Guarded)",
+      "description": "Processes order refund with SHA-256 financial state fingerprinting and preflight verification.",
+      "inputs": {
+        "order_id": {
+          "type": "string",
+          "label": "Order ID",
+          "required": true,
+          "help": "Order ID"
+        },
+        "amount": {
+          "type": "string",
+          "label": "Refund Amount",
+          "required": true,
+          "help": "Refund Amount"
+        },
+        "reason": {
+          "type": "string",
+          "label": "Refund Reason Note",
+          "default": "Customer return / Airlock-authorized",
+          "help": "Refund Reason Note"
+        },
+        "allow_high_refund": {
+          "type": "string",
+          "label": "Allow High Refund (> $100)",
+          "required": false,
+          "help": "Set to 'true' to authorize refunds over the safety ceiling."
+        }
+      },
+      "input_schema": {
+        "order_id": {
+          "type": "string",
+          "label": "Order ID",
+          "required": true,
+          "help": "Order ID"
+        },
+        "amount": {
+          "type": "string",
+          "label": "Refund Amount",
+          "required": true,
+          "help": "Refund Amount"
+        },
+        "reason": {
+          "type": "string",
+          "label": "Refund Reason Note",
+          "default": "Customer return / Airlock-authorized",
+          "help": "Refund Reason Note"
+        },
+        "allow_high_refund": {
+          "type": "string",
+          "label": "Allow High Refund (> $100)",
+          "required": false,
+          "help": "Set to 'true' to authorize refunds over the safety ceiling."
+        }
+      },
+      "requires": [
+        "SHOPIFY_SHOP_DOMAIN",
+        "SHOPIFY_ACCESS_TOKEN"
+      ],
+      "provider": "shopify"
+    },
+    {
+      "id": "shopify.cancel_order",
+      "name": "cancel_order",
+      "title": "Cancel Order (Fulfillment-Guarded)",
+      "description": "Cancels unfulfilled order with verification that items are not already shipped or cancelled.",
+      "inputs": {
+        "order_id": {
+          "type": "string",
+          "label": "Order ID",
+          "required": true,
+          "help": "Order ID"
+        },
+        "reason": {
+          "type": "string",
+          "label": "Cancellation Reason (customer, inventory, fraud, decluttered, other)",
+          "default": "customer",
+          "help": "Cancellation Reason (customer, inventory, fraud, decluttered, other)"
+        }
+      },
+      "input_schema": {
+        "order_id": {
+          "type": "string",
+          "label": "Order ID",
+          "required": true,
+          "help": "Order ID"
+        },
+        "reason": {
+          "type": "string",
+          "label": "Cancellation Reason (customer, inventory, fraud, decluttered, other)",
+          "default": "customer",
+          "help": "Cancellation Reason (customer, inventory, fraud, decluttered, other)"
+        }
+      },
+      "requires": [
+        "SHOPIFY_SHOP_DOMAIN",
+        "SHOPIFY_ACCESS_TOKEN"
+      ],
+      "provider": "shopify"
+    },
+    {
+      "id": "shopify.add_order_tags",
+      "name": "add_order_tags",
+      "title": "Add Order Tags (Anti-Drift)",
+      "description": "Safely appends tags with state fingerprinting and concurrency rechecks to prevent lost updates.",
+      "inputs": {
+        "order_id": {
+          "type": "string",
+          "label": "Order ID",
+          "required": true,
+          "help": "Order ID"
+        },
+        "tags": {
+          "type": "string",
+          "label": "Tags to Append (comma-separated)",
+          "required": true,
+          "help": "Tags to Append (comma-separated)"
+        },
+        "expected_fingerprint": {
+          "type": "string",
+          "label": "Expected State Fingerprint (SHA-256)",
+          "required": false,
+          "help": "Cryptographic anti-drift fingerprint from get_order."
+        }
+      },
+      "input_schema": {
+        "order_id": {
+          "type": "string",
+          "label": "Order ID",
+          "required": true,
+          "help": "Order ID"
+        },
+        "tags": {
+          "type": "string",
+          "label": "Tags to Append (comma-separated)",
+          "required": true,
+          "help": "Tags to Append (comma-separated)"
+        },
+        "expected_fingerprint": {
+          "type": "string",
+          "label": "Expected State Fingerprint (SHA-256)",
+          "required": false,
+          "help": "Cryptographic anti-drift fingerprint from get_order."
+        }
+      },
+      "requires": [
+        "SHOPIFY_SHOP_DOMAIN",
+        "SHOPIFY_ACCESS_TOKEN"
+      ],
+      "provider": "shopify"
+    },
+    {
+      "id": "shopify.update_inventory",
+      "name": "update_inventory",
+      "title": "Set Inventory Level (Floor-Guarded)",
+      "description": "Adjusts stock quantity at specific location with non-negative safety floor validation.",
+      "inputs": {
+        "inventory_item_id": {
+          "type": "string",
+          "label": "Inventory Item ID",
+          "required": true,
+          "help": "Inventory Item ID"
+        },
+        "location_id": {
+          "type": "string",
+          "label": "Location ID",
+          "required": true,
+          "help": "Location ID"
+        },
+        "available": {
+          "type": "string",
+          "label": "Available Quantity (>= 0)",
+          "required": true,
+          "help": "Available Quantity (>= 0)"
+        },
+        "expected_fingerprint": {
+          "type": "string",
+          "label": "Expected State Fingerprint (SHA-256)",
+          "required": false,
+          "help": "Cryptographic anti-drift fingerprint from get_order."
+        }
+      },
+      "input_schema": {
+        "inventory_item_id": {
+          "type": "string",
+          "label": "Inventory Item ID",
+          "required": true,
+          "help": "Inventory Item ID"
+        },
+        "location_id": {
+          "type": "string",
+          "label": "Location ID",
+          "required": true,
+          "help": "Location ID"
+        },
+        "available": {
+          "type": "string",
+          "label": "Available Quantity (>= 0)",
+          "required": true,
+          "help": "Available Quantity (>= 0)"
+        },
+        "expected_fingerprint": {
+          "type": "string",
+          "label": "Expected State Fingerprint (SHA-256)",
+          "required": false,
+          "help": "Cryptographic anti-drift fingerprint from get_order."
+        }
+      },
+      "requires": [
+        "SHOPIFY_SHOP_DOMAIN",
+        "SHOPIFY_ACCESS_TOKEN"
+      ],
+      "provider": "shopify"
+    },
+    {
+      "id": "shopify.close_order",
+      "name": "close_order",
+      "title": "Close Completed Order",
+      "description": "Transitions fulfilled and paid order to closed state with preflight guard verification.",
+      "inputs": {
+        "order_id": {
+          "type": "string",
+          "label": "Order ID",
+          "required": true,
+          "help": "Order ID"
+        }
+      },
+      "input_schema": {
+        "order_id": {
+          "type": "string",
+          "label": "Order ID",
+          "required": true,
+          "help": "Order ID"
+        }
+      },
+      "requires": [
+        "SHOPIFY_SHOP_DOMAIN",
+        "SHOPIFY_ACCESS_TOKEN"
+      ],
+      "provider": "shopify"
+    },
+    {
+      "id": "shopify.create_fulfillment",
+      "name": "create_fulfillment",
+      "title": "Fulfill Order with Tracking",
+      "description": "Generates fulfillment with carrier tracking metadata and cancellation guard protection.",
+      "inputs": {
+        "order_id": {
+          "type": "string",
+          "label": "Order ID",
+          "required": true,
+          "help": "Order ID"
+        },
+        "tracking_number": {
+          "type": "string",
+          "label": "Tracking Number",
+          "default": "",
+          "help": "Tracking Number"
+        },
+        "tracking_company": {
+          "type": "string",
+          "label": "Carrier Company",
+          "default": "Standard Carrier",
+          "help": "Carrier Company"
+        }
+      },
+      "input_schema": {
+        "order_id": {
+          "type": "string",
+          "label": "Order ID",
+          "required": true,
+          "help": "Order ID"
+        },
+        "tracking_number": {
+          "type": "string",
+          "label": "Tracking Number",
+          "default": "",
+          "help": "Tracking Number"
+        },
+        "tracking_company": {
+          "type": "string",
+          "label": "Carrier Company",
+          "default": "Standard Carrier",
+          "help": "Carrier Company"
+        }
+      },
+      "requires": [
+        "SHOPIFY_SHOP_DOMAIN",
+        "SHOPIFY_ACCESS_TOKEN"
+      ],
+      "provider": "shopify"
+    }
+  ],
+  "manifest_version": 2,
+  "publisher_pubkey": "4ded0aa74bbcfe3ede9202b96e78819d1703b4fdcce7915c07ae06734a5661d0",
+  "id": "rohan/shopify-admin",
+  "requires": {
+    "network": [
+      "*.myshopify.com"
+    ],
+    "subprocess": false,
+    "filesystem_writes": []
+  },
+  "provider": "shopify"
+}

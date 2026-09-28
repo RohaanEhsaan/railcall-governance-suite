@@ -1,0 +1,454 @@
+{
+  "$schema": "https://railcall.ai/schemas/module-v1.json",
+  "id": "rohan/stripe-governance",
+  "name": "stripe-governance",
+  "version": "1.2.19",
+  "title": "Stripe Financial Governance Airlock",
+  "description": "Enterprise-grade financial airlock for Stripe mutations with anti-drift state locks, idempotency, and balance guards. contest:round2",
+  "publisher_pubkey": "4ded0aa74bbcfe3ede9202b96e78819d1703b4fdcce7915c07ae06734a5661d0",
+  "author": "rohan",
+  "category": "Finance",
+  "secrets": [
+    {
+      "name": "STRIPE_SECRET_KEY",
+      "label": "Stripe Secret Key (sk_live_... / sk_test_...)"
+    }
+  ],
+  "commands": [
+    {
+      "id": "stripe.verify_connection",
+      "name": "stripe.verify_connection",
+      "title": "Verify Stripe Auth & Account Status",
+      "description": "Preflight check verifying account capabilities, payout readiness, and API accessibility.",
+      "inputs": {},
+      "input_schema": {},
+      "requires": [
+        "STRIPE_SECRET_KEY"
+      ],
+      "provider": "stripe"
+    },
+    {
+      "id": "stripe.create_customer",
+      "name": "stripe.create_customer",
+      "title": "Create Customer (Deduplication Guarded)",
+      "description": "Registers new customer with email deduplication preflight and derived idempotency key.",
+      "inputs": {
+        "email": {
+          "type": "string",
+          "label": "Customer Email",
+          "required": true,
+          "help": "Customer Email"
+        },
+        "name": {
+          "type": "string",
+          "label": "Customer Full Name",
+          "help": "Customer Full Name"
+        },
+        "allow_duplicate": {
+          "type": "string",
+          "label": "Allow Duplicate Email",
+          "default": "false",
+          "help": "Allow Duplicate Email"
+        }
+      },
+      "input_schema": {
+        "email": {
+          "type": "string",
+          "label": "Customer Email",
+          "required": true,
+          "help": "Customer Email"
+        },
+        "name": {
+          "type": "string",
+          "label": "Customer Full Name",
+          "help": "Customer Full Name"
+        },
+        "allow_duplicate": {
+          "type": "string",
+          "label": "Allow Duplicate Email",
+          "default": "false",
+          "help": "Allow Duplicate Email"
+        }
+      },
+      "requires": [
+        "STRIPE_SECRET_KEY"
+      ],
+      "provider": "stripe"
+    },
+    {
+      "id": "stripe.create_invoice",
+      "name": "stripe.create_invoice",
+      "title": "Create Draft Invoice (Safety Checked)",
+      "description": "Dispatches an itemized draft invoice with approval-gated auto-advance controls.",
+      "inputs": {
+        "customer_id": {
+          "type": "string",
+          "label": "Customer ID (cus_...)",
+          "required": true,
+          "help": "Customer ID (cus_...)"
+        },
+        "amount_cents": {
+          "type": "string",
+          "label": "Invoice Amount in Cents",
+          "required": true,
+          "help": "Invoice Amount in Cents"
+        },
+        "description": {
+          "type": "string",
+          "label": "Line Item Description",
+          "help": "Line Item Description"
+        },
+        "currency": {
+          "type": "string",
+          "label": "Currency Code",
+          "default": "usd",
+          "help": "Currency Code"
+        },
+        "auto_advance": {
+          "type": "string",
+          "label": "Auto-advance to Open",
+          "default": "false",
+          "help": "Auto-advance to Open"
+        }
+      },
+      "input_schema": {
+        "customer_id": {
+          "type": "string",
+          "label": "Customer ID (cus_...)",
+          "required": true,
+          "help": "Customer ID (cus_...)"
+        },
+        "amount_cents": {
+          "type": "string",
+          "label": "Invoice Amount in Cents",
+          "required": true,
+          "help": "Invoice Amount in Cents"
+        },
+        "description": {
+          "type": "string",
+          "label": "Line Item Description",
+          "help": "Line Item Description"
+        },
+        "currency": {
+          "type": "string",
+          "label": "Currency Code",
+          "default": "usd",
+          "help": "Currency Code"
+        },
+        "auto_advance": {
+          "type": "string",
+          "label": "Auto-advance to Open",
+          "default": "false",
+          "help": "Auto-advance to Open"
+        }
+      },
+      "requires": [
+        "STRIPE_SECRET_KEY"
+      ],
+      "provider": "stripe"
+    },
+    {
+      "id": "stripe.create_payment_link",
+      "name": "stripe.create_payment_link",
+      "title": "Create Payment Link (Floor Guarded)",
+      "description": "Generates a secure Stripe checkout payment link with line-item amount floor validations.",
+      "inputs": {
+        "amount_cents": {
+          "type": "string",
+          "label": "Charge Amount in Cents (Min 50)",
+          "required": true,
+          "help": "Charge Amount in Cents (Min 50)"
+        },
+        "product_name": {
+          "type": "string",
+          "label": "Product / Service Description",
+          "help": "Product / Service Description"
+        },
+        "currency": {
+          "type": "string",
+          "label": "Currency Code",
+          "default": "usd",
+          "help": "Currency Code"
+        }
+      },
+      "input_schema": {
+        "amount_cents": {
+          "type": "string",
+          "label": "Charge Amount in Cents (Min 50)",
+          "required": true,
+          "help": "Charge Amount in Cents (Min 50)"
+        },
+        "product_name": {
+          "type": "string",
+          "label": "Product / Service Description",
+          "help": "Product / Service Description"
+        },
+        "currency": {
+          "type": "string",
+          "label": "Currency Code",
+          "default": "usd",
+          "help": "Currency Code"
+        }
+      },
+      "requires": [
+        "STRIPE_SECRET_KEY"
+      ],
+      "provider": "stripe"
+    },
+    {
+      "id": "stripe.refund_charge",
+      "name": "stripe.refund_charge",
+      "title": "Refund Charge (Anti-Drift Locked)",
+      "description": "Binds refund approval to charge state hash; executes with guaranteed idempotency key.",
+      "inputs": {
+        "charge_id": {
+          "type": "string",
+          "label": "Charge ID (ch_... or pi_...)",
+          "required": true,
+          "help": "Charge ID (ch_... or pi_...)"
+        },
+        "amount_cents": {
+          "type": "string",
+          "label": "Refund Amount in Cents (Leave empty for full refund)",
+          "help": "Refund Amount in Cents (Leave empty for full refund)"
+        },
+        "reason": {
+          "type": "string",
+          "label": "Refund Reason",
+          "enum": [
+            "duplicate",
+            "fraudulent",
+            "requested_by_customer"
+          ],
+          "default": "requested_by_customer",
+          "help": "Refund Reason"
+        }
+      },
+      "input_schema": {
+        "charge_id": {
+          "type": "string",
+          "label": "Charge ID (ch_... or pi_...)",
+          "required": true,
+          "help": "Charge ID (ch_... or pi_...)"
+        },
+        "amount_cents": {
+          "type": "string",
+          "label": "Refund Amount in Cents (Leave empty for full refund)",
+          "help": "Refund Amount in Cents (Leave empty for full refund)"
+        },
+        "reason": {
+          "type": "string",
+          "label": "Refund Reason",
+          "enum": [
+            "duplicate",
+            "fraudulent",
+            "requested_by_customer"
+          ],
+          "default": "requested_by_customer",
+          "help": "Refund Reason"
+        }
+      },
+      "requires": [
+        "STRIPE_SECRET_KEY"
+      ],
+      "provider": "stripe"
+    },
+    {
+      "id": "stripe.adjust_credit_balance",
+      "name": "stripe.adjust_credit_balance",
+      "title": "Adjust Customer Balance (Ceiling-Guarded)",
+      "description": "Safely adjust customer credit balance with anti-drift protection and $100 ceiling guard.",
+      "inputs": {
+        "customer_id": {
+          "type": "string",
+          "label": "Customer ID (cus_...)",
+          "required": true,
+          "help": "Customer ID (cus_...)"
+        },
+        "amount_cents": {
+          "type": "string",
+          "label": "Adjustment Amount Cents (+ or -)",
+          "required": true,
+          "help": "Adjustment Amount Cents (+ or -)"
+        },
+        "currency": {
+          "type": "string",
+          "label": "Currency Code",
+          "default": "usd",
+          "help": "Currency Code"
+        },
+        "override_ceiling": {
+          "type": "string",
+          "label": "Override $100 Ceiling Guard",
+          "default": "false",
+          "help": "Override $100 Ceiling Guard"
+        }
+      },
+      "input_schema": {
+        "customer_id": {
+          "type": "string",
+          "label": "Customer ID (cus_...)",
+          "required": true,
+          "help": "Customer ID (cus_...)"
+        },
+        "amount_cents": {
+          "type": "string",
+          "label": "Adjustment Amount Cents (+ or -)",
+          "required": true,
+          "help": "Adjustment Amount Cents (+ or -)"
+        },
+        "currency": {
+          "type": "string",
+          "label": "Currency Code",
+          "default": "usd",
+          "help": "Currency Code"
+        },
+        "override_ceiling": {
+          "type": "string",
+          "label": "Override $100 Ceiling Guard",
+          "default": "false",
+          "help": "Override $100 Ceiling Guard"
+        }
+      },
+      "requires": [
+        "STRIPE_SECRET_KEY"
+      ],
+      "provider": "stripe"
+    },
+    {
+      "id": "stripe.cancel_subscription",
+      "name": "stripe.cancel_subscription",
+      "title": "Cancel Subscription (Termination Guard)",
+      "description": "Cancels an active subscription. Immediate termination requires explicit override.",
+      "inputs": {
+        "subscription_id": {
+          "type": "string",
+          "label": "Subscription ID (sub_...)",
+          "required": true,
+          "help": "Subscription ID (sub_...)"
+        },
+        "immediately": {
+          "type": "string",
+          "label": "Cancel Immediately (Overrides end-of-period default)",
+          "default": "false",
+          "help": "Cancel Immediately (Overrides end-of-period default)"
+        }
+      },
+      "input_schema": {
+        "subscription_id": {
+          "type": "string",
+          "label": "Subscription ID (sub_...)",
+          "required": true,
+          "help": "Subscription ID (sub_...)"
+        },
+        "immediately": {
+          "type": "string",
+          "label": "Cancel Immediately (Overrides end-of-period default)",
+          "default": "false",
+          "help": "Cancel Immediately (Overrides end-of-period default)"
+        }
+      },
+      "requires": [
+        "STRIPE_SECRET_KEY"
+      ],
+      "provider": "stripe"
+    },
+    {
+      "id": "stripe.void_invoice",
+      "name": "stripe.void_invoice",
+      "title": "Void Open Invoice",
+      "description": "Renders an open, uncollected invoice void.",
+      "inputs": {
+        "invoice_id": {
+          "type": "string",
+          "label": "Invoice ID (in_...)",
+          "required": true,
+          "help": "Invoice ID (in_...)"
+        }
+      },
+      "input_schema": {
+        "invoice_id": {
+          "type": "string",
+          "label": "Invoice ID (in_...)",
+          "required": true,
+          "help": "Invoice ID (in_...)"
+        }
+      },
+      "requires": [
+        "STRIPE_SECRET_KEY"
+      ],
+      "provider": "stripe"
+    },
+    {
+      "id": "stripe.get_customer_overview",
+      "name": "stripe.get_customer_overview",
+      "title": "Get Customer Overview",
+      "description": "Fetches verified customer ledger balance, active subscriptions, and delinquency state.",
+      "inputs": {
+        "customer_id": {
+          "type": "string",
+          "label": "Customer ID (cus_...)",
+          "required": true,
+          "help": "Customer ID (cus_...)"
+        }
+      },
+      "input_schema": {
+        "customer_id": {
+          "type": "string",
+          "label": "Customer ID (cus_...)",
+          "required": true,
+          "help": "Customer ID (cus_...)"
+        }
+      },
+      "requires": [
+        "STRIPE_SECRET_KEY"
+      ],
+      "provider": "stripe"
+    },
+    {
+      "id": "stripe.list_invoices",
+      "name": "stripe.list_invoices",
+      "title": "List Recent Invoices",
+      "description": "Fetches recent invoices with optional customer filtering for audit reconciliation.",
+      "inputs": {
+        "customer_id": {
+          "type": "string",
+          "label": "Filter by Customer ID",
+          "help": "Filter by Customer ID"
+        },
+        "limit": {
+          "type": "string",
+          "label": "Result Limit",
+          "default": "10",
+          "help": "Result Limit"
+        }
+      },
+      "input_schema": {
+        "customer_id": {
+          "type": "string",
+          "label": "Filter by Customer ID",
+          "help": "Filter by Customer ID"
+        },
+        "limit": {
+          "type": "string",
+          "label": "Result Limit",
+          "default": "10",
+          "help": "Result Limit"
+        }
+      },
+      "requires": [
+        "STRIPE_SECRET_KEY"
+      ],
+      "provider": "stripe"
+    }
+  ],
+  "manifest_version": 2,
+  "requires": {
+    "network": [
+      "api.stripe.com"
+    ],
+    "subprocess": false,
+    "filesystem_writes": []
+  },
+  "provider": "stripe"
+}

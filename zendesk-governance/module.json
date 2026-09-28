@@ -1,0 +1,275 @@
+{
+  "id": "rohan/zendesk-governance",
+  "name": "zendesk-governance",
+  "version": "1.2.2",
+  "category": "Support",
+  "author": "Rohan",
+  "description": "Autonomous governance airlock for Zendesk Support API featuring anti-drift state locks, nondestructing tag operations, and SLA queue inspection. contest:round2",
+  "secrets": [
+    {
+      "name": "ZENDESK_SUBDOMAIN",
+      "label": "Zendesk Subdomain (e.g., yourcompany or yourcompany.zendesk.com)"
+    },
+    {
+      "name": "ZENDESK_EMAIL",
+      "label": "Zendesk Agent/Admin Email"
+    },
+    {
+      "name": "ZENDESK_API_TOKEN",
+      "label": "Zendesk API Token"
+    }
+  ],
+  "commands": [
+    {
+      "id": "zendesk.verify_zendesk_connection",
+      "name": "verify_zendesk_connection",
+      "title": "Verify Zendesk Connection",
+      "description": "Validates Zendesk API credentials, agent permissions, and airlock operational health.",
+      "inputs": {},
+      "input_schema": {},
+      "requires": [
+        "ZENDESK_SUBDOMAIN",
+        "ZENDESK_EMAIL",
+        "ZENDESK_API_TOKEN"
+      ],
+      "provider": "zendesk"
+    },
+    {
+      "id": "zendesk.get_ticket",
+      "name": "get_ticket",
+      "title": "Inspect Ticket State",
+      "description": "Retrieves comprehensive ticket metrics including status, priority, tags, and cryptographic state fingerprint.",
+      "inputs": {
+        "ticket_id": {
+          "type": "string",
+          "label": "Ticket ID",
+          "required": true,
+          "help": "Ticket ID"
+        }
+      },
+      "input_schema": {
+        "ticket_id": {
+          "type": "string",
+          "label": "Ticket ID",
+          "required": true,
+          "help": "Ticket ID"
+        }
+      },
+      "requires": [
+        "ZENDESK_SUBDOMAIN",
+        "ZENDESK_EMAIL",
+        "ZENDESK_API_TOKEN"
+      ],
+      "provider": "zendesk"
+    },
+    {
+      "id": "zendesk.list_open_tickets",
+      "name": "list_open_tickets",
+      "title": "List Open SLA Tickets",
+      "description": "Queries active ticket queue filtering for status < solved for pre-mutation discovery.",
+      "inputs": {
+        "limit": {
+          "type": "number",
+          "label": "Max Tickets",
+          "default": 10,
+          "help": "Max Tickets"
+        }
+      },
+      "input_schema": {
+        "limit": {
+          "type": "number",
+          "label": "Max Tickets",
+          "default": 10,
+          "help": "Max Tickets"
+        }
+      },
+      "requires": [
+        "ZENDESK_SUBDOMAIN",
+        "ZENDESK_EMAIL",
+        "ZENDESK_API_TOKEN"
+      ],
+      "provider": "zendesk"
+    },
+    {
+      "id": "zendesk.update_ticket_status",
+      "name": "update_ticket_status",
+      "title": "Update Ticket Status (Drift-Guarded)",
+      "description": "Transitions ticket lifecycle state with SHA-256 anti-drift fingerprinting and preflight verification.",
+      "inputs": {
+        "ticket_id": {
+          "type": "string",
+          "label": "Ticket ID",
+          "required": true,
+          "help": "Ticket ID"
+        },
+        "status": {
+          "type": "string",
+          "label": "New Status (open, pending, hold, solved, closed)",
+          "required": true,
+          "help": "New Status (open, pending, hold, solved, closed)"
+        }
+      },
+      "input_schema": {
+        "ticket_id": {
+          "type": "string",
+          "label": "Ticket ID",
+          "required": true,
+          "help": "Ticket ID"
+        },
+        "status": {
+          "type": "string",
+          "label": "New Status (open, pending, hold, solved, closed)",
+          "required": true,
+          "help": "New Status (open, pending, hold, solved, closed)"
+        }
+      },
+      "requires": [
+        "ZENDESK_SUBDOMAIN",
+        "ZENDESK_EMAIL",
+        "ZENDESK_API_TOKEN"
+      ],
+      "provider": "zendesk"
+    },
+    {
+      "id": "zendesk.escalate_ticket_priority",
+      "name": "escalate_ticket_priority",
+      "title": "Escalate Ticket Priority (Drift-Guarded)",
+      "description": "Elevates ticket priority with anti-drift concurrency protection to prevent lost updates.",
+      "inputs": {
+        "ticket_id": {
+          "type": "string",
+          "label": "Ticket ID",
+          "required": true,
+          "help": "Ticket ID"
+        },
+        "priority": {
+          "type": "string",
+          "label": "Priority (low, normal, high, urgent)",
+          "default": "urgent",
+          "help": "Priority (low, normal, high, urgent)"
+        }
+      },
+      "input_schema": {
+        "ticket_id": {
+          "type": "string",
+          "label": "Ticket ID",
+          "required": true,
+          "help": "Ticket ID"
+        },
+        "priority": {
+          "type": "string",
+          "label": "Priority (low, normal, high, urgent)",
+          "default": "urgent",
+          "help": "Priority (low, normal, high, urgent)"
+        }
+      },
+      "requires": [
+        "ZENDESK_SUBDOMAIN",
+        "ZENDESK_EMAIL",
+        "ZENDESK_API_TOKEN"
+      ],
+      "provider": "zendesk"
+    },
+    {
+      "id": "zendesk.post_ticket_reply",
+      "name": "post_ticket_reply",
+      "title": "Post Ticket Reply",
+      "description": "Appends public customer reply or internal audit note with tiered impact controls.",
+      "inputs": {
+        "ticket_id": {
+          "type": "string",
+          "label": "Ticket ID",
+          "required": true,
+          "help": "Ticket ID"
+        },
+        "body": {
+          "type": "string",
+          "label": "Comment Body",
+          "required": true,
+          "help": "Comment Body"
+        },
+        "public": {
+          "type": "boolean",
+          "label": "Public Reply (false for internal note)",
+          "default": false,
+          "help": "Public Reply (false for internal note)"
+        }
+      },
+      "input_schema": {
+        "ticket_id": {
+          "type": "string",
+          "label": "Ticket ID",
+          "required": true,
+          "help": "Ticket ID"
+        },
+        "body": {
+          "type": "string",
+          "label": "Comment Body",
+          "required": true,
+          "help": "Comment Body"
+        },
+        "public": {
+          "type": "boolean",
+          "label": "Public Reply (false for internal note)",
+          "default": false,
+          "help": "Public Reply (false for internal note)"
+        }
+      },
+      "requires": [
+        "ZENDESK_SUBDOMAIN",
+        "ZENDESK_EMAIL",
+        "ZENDESK_API_TOKEN"
+      ],
+      "provider": "zendesk"
+    },
+    {
+      "id": "zendesk.add_ticket_tags",
+      "name": "add_ticket_tags",
+      "title": "Add Ticket Tags (Non-Destructive)",
+      "description": "Nondestructively appends tags to the ticket without overwriting existing tags.",
+      "inputs": {
+        "ticket_id": {
+          "type": "string",
+          "label": "Ticket ID",
+          "required": true,
+          "help": "Ticket ID"
+        },
+        "tags": {
+          "type": "string",
+          "label": "Tags (comma-separated)",
+          "required": true,
+          "help": "Tags (comma-separated)"
+        }
+      },
+      "input_schema": {
+        "ticket_id": {
+          "type": "string",
+          "label": "Ticket ID",
+          "required": true,
+          "help": "Ticket ID"
+        },
+        "tags": {
+          "type": "string",
+          "label": "Tags (comma-separated)",
+          "required": true,
+          "help": "Tags (comma-separated)"
+        }
+      },
+      "requires": [
+        "ZENDESK_SUBDOMAIN",
+        "ZENDESK_EMAIL",
+        "ZENDESK_API_TOKEN"
+      ],
+      "provider": "zendesk"
+    }
+  ],
+  "manifest_version": 2,
+  "publisher_pubkey": "4ded0aa74bbcfe3ede9202b96e78819d1703b4fdcce7915c07ae06734a5661d0",
+  "requires": {
+    "network": [
+      "*.zendesk.com"
+    ],
+    "subprocess": false,
+    "filesystem_writes": []
+  }
+}

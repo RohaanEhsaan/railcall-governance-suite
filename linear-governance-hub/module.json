@@ -1,0 +1,400 @@
+{
+  "$schema": "https://railcall.ai/schemas/module-v1.json",
+  "id": "rohan/linear-governance-hub",
+  "name": "linear-governance-hub",
+  "version": "1.3.2",
+  "title": "Linear Governance Hub",
+  "description": "Enterprise triage & issue orchestration with anti-drift state locks and escalation guards. contest:round2",
+  "publisher_pubkey": "4ded0aa74bbcfe3ede9202b96e78819d1703b4fdcce7915c07ae06734a5661d0",
+  "secrets": [
+    {
+      "name": "LINEAR_API_KEY",
+      "label": "Linear Personal Access Token (lin_api_...)"
+    }
+  ],
+  "commands": [
+    {
+      "id": "linear.verify_connection",
+      "name": "verify_connection",
+      "title": "Verify Linear Auth & Quota",
+      "description": "Preflight inspection of workspace viewer identity, team scopes, and API quota.",
+      "inputs": {},
+      "input_schema": {},
+      "requires": [
+        "LINEAR_API_KEY"
+      ],
+      "provider": "linear"
+    },
+    {
+      "id": "linear.transition_status",
+      "name": "transition_status",
+      "title": "Transition Status (Anti-Drift)",
+      "description": "Binds state transition to an SHA-256 issue fingerprint; halts if updated mid-review.",
+      "inputs": {
+        "issueId": {
+          "type": "string",
+          "label": "Issue ID (UUID or Key)",
+          "required": true,
+          "help": "Issue ID (UUID or Key)"
+        },
+        "stateId": {
+          "type": "string",
+          "label": "Target State UUID",
+          "required": true,
+          "help": "Target State UUID"
+        },
+        "expected_fingerprint": {
+          "type": "string",
+          "label": "Expected State Fingerprint (SHA-256)",
+          "required": false,
+          "help": "Cryptographic anti-drift fingerprint from get_issue or preview."
+        }
+      },
+      "input_schema": {
+        "issueId": {
+          "type": "string",
+          "label": "Issue ID (UUID or Key)",
+          "required": true,
+          "help": "Issue ID (UUID or Key)"
+        },
+        "stateId": {
+          "type": "string",
+          "label": "Target State UUID",
+          "required": true,
+          "help": "Target State UUID"
+        },
+        "expected_fingerprint": {
+          "type": "string",
+          "label": "Expected State Fingerprint (SHA-256)",
+          "required": false,
+          "help": "Cryptographic anti-drift fingerprint from get_issue or preview."
+        }
+      },
+      "requires": [
+        "LINEAR_API_KEY"
+      ],
+      "provider": "linear"
+    },
+    {
+      "id": "linear.update_priority",
+      "name": "update_priority",
+      "title": "Update Priority (Escalation Guard)",
+      "description": "Adjusts priority level. Escalating to P1 (Urgent) requires explicit override.",
+      "inputs": {
+        "issueId": {
+          "type": "string",
+          "label": "Issue ID",
+          "required": true,
+          "help": "Issue ID"
+        },
+        "priority": {
+          "type": "string",
+          "label": "Priority (0=None, 1=Urgent, 2=High, 3=Med, 4=Low)",
+          "required": true,
+          "help": "Priority (0=None, 1=Urgent, 2=High, 3=Med, 4=Low)"
+        },
+        "allow_urgent": {
+          "type": "string",
+          "label": "Explicit Urgent P0/P1 Escalation Override",
+          "default": false,
+          "help": "Explicit Urgent P0/P1 Escalation Override"
+        },
+        "expected_fingerprint": {
+          "type": "string",
+          "label": "Expected State Fingerprint (SHA-256)",
+          "required": false,
+          "help": "Cryptographic anti-drift fingerprint from get_issue or preview."
+        }
+      },
+      "input_schema": {
+        "issueId": {
+          "type": "string",
+          "label": "Issue ID",
+          "required": true,
+          "help": "Issue ID"
+        },
+        "priority": {
+          "type": "string",
+          "label": "Priority (0=None, 1=Urgent, 2=High, 3=Med, 4=Low)",
+          "required": true,
+          "help": "Priority (0=None, 1=Urgent, 2=High, 3=Med, 4=Low)"
+        },
+        "allow_urgent": {
+          "type": "string",
+          "label": "Explicit Urgent P0/P1 Escalation Override",
+          "default": false,
+          "help": "Explicit Urgent P0/P1 Escalation Override"
+        },
+        "expected_fingerprint": {
+          "type": "string",
+          "label": "Expected State Fingerprint (SHA-256)",
+          "required": false,
+          "help": "Cryptographic anti-drift fingerprint from get_issue or preview."
+        }
+      },
+      "requires": [
+        "LINEAR_API_KEY"
+      ],
+      "provider": "linear"
+    },
+    {
+      "id": "linear.assign_user",
+      "name": "assign_user",
+      "title": "Assign User",
+      "description": "Assigns an issue to a team member with re-assignment impact preview.",
+      "inputs": {
+        "issueId": {
+          "type": "string",
+          "label": "Issue ID",
+          "required": true,
+          "help": "Issue ID"
+        },
+        "assigneeId": {
+          "type": "string",
+          "label": "Assignee User UUID",
+          "required": true,
+          "help": "Assignee User UUID"
+        }
+      },
+      "input_schema": {
+        "issueId": {
+          "type": "string",
+          "label": "Issue ID",
+          "required": true,
+          "help": "Issue ID"
+        },
+        "assigneeId": {
+          "type": "string",
+          "label": "Assignee User UUID",
+          "required": true,
+          "help": "Assignee User UUID"
+        }
+      },
+      "requires": [
+        "LINEAR_API_KEY"
+      ],
+      "provider": "linear"
+    },
+    {
+      "id": "linear.create_issue",
+      "name": "create_issue",
+      "title": "Create Governed Issue",
+      "description": "Creates a new issue with explicit team assignment and preview.",
+      "inputs": {
+        "teamId": {
+          "type": "string",
+          "label": "Team UUID",
+          "required": true,
+          "help": "Team UUID"
+        },
+        "title": {
+          "type": "string",
+          "label": "Issue Title",
+          "required": true,
+          "help": "Issue Title"
+        },
+        "description": {
+          "type": "string",
+          "label": "Markdown Description",
+          "help": "Markdown Description"
+        },
+        "priority": {
+          "type": "string",
+          "label": "Priority (0-4)",
+          "default": 0,
+          "help": "Priority (0-4)"
+        }
+      },
+      "input_schema": {
+        "teamId": {
+          "type": "string",
+          "label": "Team UUID",
+          "required": true,
+          "help": "Team UUID"
+        },
+        "title": {
+          "type": "string",
+          "label": "Issue Title",
+          "required": true,
+          "help": "Issue Title"
+        },
+        "description": {
+          "type": "string",
+          "label": "Markdown Description",
+          "help": "Markdown Description"
+        },
+        "priority": {
+          "type": "string",
+          "label": "Priority (0-4)",
+          "default": 0,
+          "help": "Priority (0-4)"
+        }
+      },
+      "requires": [
+        "LINEAR_API_KEY"
+      ],
+      "provider": "linear"
+    },
+    {
+      "id": "linear.add_comment",
+      "name": "add_comment",
+      "title": "Add Triage Comment",
+      "description": "Appends audit observations or triage notes directly to an issue.",
+      "inputs": {
+        "issueId": {
+          "type": "string",
+          "label": "Issue ID",
+          "required": true,
+          "help": "Issue ID"
+        },
+        "body": {
+          "type": "string",
+          "label": "Comment Text",
+          "required": true,
+          "help": "Comment Text"
+        }
+      },
+      "input_schema": {
+        "issueId": {
+          "type": "string",
+          "label": "Issue ID",
+          "required": true,
+          "help": "Issue ID"
+        },
+        "body": {
+          "type": "string",
+          "label": "Comment Text",
+          "required": true,
+          "help": "Comment Text"
+        }
+      },
+      "requires": [
+        "LINEAR_API_KEY"
+      ],
+      "provider": "linear"
+    },
+    {
+      "id": "linear.attach_signed_log",
+      "name": "attach_signed_log",
+      "title": "Attach Signed Audit Log",
+      "description": "Appends an immutable cryptographic execution trace to an issue as an audit record.",
+      "inputs": {
+        "issueId": {
+          "type": "string",
+          "label": "Issue ID",
+          "required": true,
+          "help": "Issue ID"
+        },
+        "title": {
+          "type": "string",
+          "label": "Log Title",
+          "required": true,
+          "help": "Log Title"
+        },
+        "logData": {
+          "type": "string",
+          "label": "Serialized Audit Log",
+          "required": true,
+          "help": "Serialized Audit Log"
+        }
+      },
+      "input_schema": {
+        "issueId": {
+          "type": "string",
+          "label": "Issue ID",
+          "required": true,
+          "help": "Issue ID"
+        },
+        "title": {
+          "type": "string",
+          "label": "Log Title",
+          "required": true,
+          "help": "Log Title"
+        },
+        "logData": {
+          "type": "string",
+          "label": "Serialized Audit Log",
+          "required": true,
+          "help": "Serialized Audit Log"
+        }
+      },
+      "requires": [
+        "LINEAR_API_KEY"
+      ],
+      "provider": "linear"
+    },
+    {
+      "id": "linear.get_issue",
+      "title": "Inspect Issue Details",
+      "description": "Fetch full issue details including state, assignee, team, and updatedAt timestamp.",
+      "inputs": {
+        "issueId": {
+          "type": "string",
+          "label": "Issue ID or Identifier",
+          "required": true,
+          "help": "Issue ID or Identifier"
+        }
+      },
+      "name": "get_issue",
+      "input_schema": {
+        "issueId": {
+          "type": "string",
+          "label": "Issue ID or Identifier",
+          "required": true,
+          "help": "Issue ID or Identifier"
+        }
+      },
+      "requires": [
+        "LINEAR_API_KEY"
+      ],
+      "provider": "linear"
+    },
+    {
+      "id": "linear.list_team_issues",
+      "title": "List Team Issues",
+      "description": "Query team issue queue ordered by recent activity for pre-mutation inspection.",
+      "inputs": {
+        "teamId": {
+          "type": "string",
+          "label": "Team ID",
+          "required": true,
+          "help": "Team ID"
+        },
+        "limit": {
+          "type": "string",
+          "label": "Max Issues",
+          "default": 20,
+          "help": "Max Issues"
+        }
+      },
+      "name": "list_team_issues",
+      "input_schema": {
+        "teamId": {
+          "type": "string",
+          "label": "Team ID",
+          "required": true,
+          "help": "Team ID"
+        },
+        "limit": {
+          "type": "string",
+          "label": "Max Issues",
+          "default": 20,
+          "help": "Max Issues"
+        }
+      },
+      "requires": [
+        "LINEAR_API_KEY"
+      ],
+      "provider": "linear"
+    }
+  ],
+  "manifest_version": 2,
+  "requires": {
+    "network": [
+      "api.linear.app"
+    ],
+    "subprocess": false,
+    "filesystem_writes": []
+  },
+  "provider": "linear"
+}

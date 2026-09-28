@@ -1,0 +1,71 @@
+{
+  "$schema": "https://railcall.ai/schemas/module-v1.json",
+  "name": "linear-governance-hub",
+  "version": "1.0.0",
+  "description": "Enterprise triage & issue orchestration with cryptographic audit trails for Linear. contest:round2",
+  "auth": {
+    "type": "bearer",
+    "secret_names": ["LINEAR_API_KEY"]
+  },
+  "actions": [
+    {
+      "name": "create_issue",
+      "description": "Draft and create a new Linear issue with team assignment and priority.",
+      "inputs": {
+        "teamId": { "type": "string", "required": true },
+        "title": { "type": "string", "required": true },
+        "description": { "type": "string", "required": false },
+        "priority": { "type": "integer", "enum": [0, 1, 2, 3, 4], "default": 0 }
+      }
+    },
+    {
+      "name": "update_priority",
+      "description": "Escalate or downgrade an issue's priority level.",
+      "inputs": {
+        "issueId": { "type": "string", "required": true },
+        "priority": { "type": "integer", "enum": [0, 1, 2, 3, 4], "required": true }
+      }
+    },
+    {
+      "name": "assign_user",
+      "description": "Assign an issue to an engineering team member.",
+      "inputs": {
+        "issueId": { "type": "string", "required": true },
+        "assigneeId": { "type": "string", "required": true }
+      }
+    },
+    {
+      "name": "add_comment",
+      "description": "Append audit context or discussion notes to an active issue.",
+      "inputs": {
+        "issueId": { "type": "string", "required": true },
+        "body": { "type": "string", "required": true }
+      }
+    },
+    {
+      "name": "transition_status",
+      "description": "Move an issue through workflow states (Triage -> Todo -> In Progress -> Done).",
+      "inputs": {
+        "issueId": { "type": "string", "required": true },
+        "stateId": { "type": "string", "required": true }
+      }
+    },
+    {
+      "name": "close_sprint_issue",
+      "description": "Complete and close an issue with an optional final resolution summary.",
+      "inputs": {
+        "issueId": { "type": "string", "required": true },
+        "resolutionNote": { "type": "string", "required": false }
+      }
+    },
+    {
+      "name": "attach_signed_log",
+      "description": "Attach a cryptographic execution trace or incident log directly to the issue.",
+      "inputs": {
+        "issueId": { "type": "string", "required": true },
+        "title": { "type": "string", "required": true },
+        "logData": { "type": "string", "required": true }
+      }
+    }
+  ]
+}

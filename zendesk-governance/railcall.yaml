@@ -1,0 +1,55 @@
+name: rohan/zendesk-governance
+version: 1.0.0
+description: Enterprise SLA governance and customer communication airlock for Zendesk Support. Includes SHA-256 state-drift locking, public comment guardrails, and offline tests.
+tags:
+  - contest:round2
+  - zendesk
+  - customer-support
+  - governance
+  - airlock
+
+entrypoint: handlers/handler.py:handle
+
+config:
+  ZENDESK_SUBDOMAIN:
+    type: string
+    description: Zendesk subdomain (e.g. yourcompany for yourcompany.zendesk.com)
+    required: true
+  ZENDESK_EMAIL:
+    type: string
+    description: Zendesk agent/admin email address
+    required: true
+  ZENDESK_API_TOKEN:
+    type: string
+    description: Zendesk REST API token
+    required: true
+    secret: true
+
+commands:
+  verify_connection:
+    description: Inspects Zendesk API authentication, current account identity, and role permissions.
+    impact: low
+
+  get_ticket:
+    description: Retrieves real-time ticket state, tags, priority, and latest update timestamps.
+    impact: low
+
+  list_open_tickets:
+    description: Lists pending and open SLA tickets across views.
+    impact: low
+
+  update_ticket_status:
+    description: Mutates ticket status (pending, solved, closed) protected by SHA-256 state-drift verification.
+    impact: high
+
+  post_ticket_reply:
+    description: Adds an internal note or public customer comment guarded by drift checks and explicit public flags.
+    impact: high
+
+  escalate_ticket_priority:
+    description: Adjusts ticket priority (low, normal, high, urgent) with preflight SLA validation.
+    impact: high
+
+  add_ticket_tags:
+    description: Non-destructively appends governance, triage, and audit tags to an active ticket.
+    impact: medium
