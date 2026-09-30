@@ -2,7 +2,7 @@
   "$schema": "https://railcall.ai/schemas/module-v1.json",
   "id": "rohan/cloud-infra-airlock",
   "name": "cloud-infra-airlock",
-  "version": "1.5.5",
+  "version": "1.5.7",
   "title": "Cloud Infrastructure Cost & Kill-Switch Airlock",
   "description": "Enterprise-grade AWS infrastructure airlock enforcing spend ceilings, strict GPU quarantines, and instance safety locks.",
   "publisher_pubkey": "4ded0aa74bbcfe3ede9202b96e78819d1703b4fdcce7915c07ae06734a5661d0",
@@ -41,19 +41,20 @@
         "AWS_SECRET_ACCESS_KEY"
       ],
       "input_schema": {
-        "type": "object",
-        "properties": {
-          "region": {
-            "type": "string"
-          }
+        "region": {
+          "type": "string",
+          "label": "AWS Region",
+          "default": "us-east-1",
+          "help": "AWS region to scan for running instances (e.g. us-east-1)"
         }
       },
       "risk": "low",
       "inputs": {
         "region": {
           "type": "string",
+          "label": "AWS Region",
           "default": "us-east-1",
-          "label": "AWS Region"
+          "help": "AWS region to scan for running instances (e.g. us-east-1)"
         }
       }
     },
@@ -67,23 +68,22 @@
       "provider": "aws",
       "requires": [],
       "input_schema": {
-        "type": "object",
-        "properties": {
-          "instance_type": {
-            "type": "string",
-            "default": "t3.micro"
-          }
-        },
-        "required": [
-          "instance_type"
-        ]
+        "instance_type": {
+          "type": "string",
+          "label": "Instance Type",
+          "default": "t3.micro",
+          "required": true,
+          "help": "EC2 instance type to evaluate (e.g. t3.micro, g5.xlarge, m5.16xlarge)"
+        }
       },
       "risk": "low",
       "inputs": {
         "instance_type": {
           "type": "string",
+          "label": "Instance Type",
           "default": "t3.micro",
-          "label": "Instance Type (e.g. t3.micro)"
+          "required": true,
+          "help": "EC2 instance type to evaluate (e.g. t3.micro, g5.xlarge, m5.16xlarge)"
         }
       }
     },
@@ -100,48 +100,60 @@
         "AWS_SECRET_ACCESS_KEY"
       ],
       "input_schema": {
-        "type": "object",
-        "properties": {
-          "instance_type": {
-            "type": "string"
-          },
-          "image_id": {
-            "type": "string"
-          },
-          "override_ceiling": {
-            "type": "string",
-            "default": "false"
-          },
-          "region": {
-            "type": "string"
-          }
+        "instance_type": {
+          "type": "string",
+          "label": "Instance Type",
+          "default": "t3.micro",
+          "required": true,
+          "help": "EC2 instance type to launch"
         },
-        "required": [
-          "instance_type",
-          "image_id"
-        ]
+        "image_id": {
+          "type": "string",
+          "label": "AMI Image ID",
+          "default": "ami-0c55b159cbfafe1f0",
+          "required": true,
+          "help": "Target AMI image ID (e.g. ami-0c55b159cbfafe1f0)"
+        },
+        "override_ceiling": {
+          "type": "string",
+          "label": "Override Spend Ceiling",
+          "default": "false",
+          "help": "Set to true to permit instances exceeding $0.50/hr (GPUs remain strictly blocked)"
+        },
+        "region": {
+          "type": "string",
+          "label": "AWS Region",
+          "default": "us-east-1",
+          "help": "AWS target deployment region"
+        }
       },
       "risk": "high",
       "inputs": {
         "instance_type": {
           "type": "string",
+          "label": "Instance Type",
           "default": "t3.micro",
-          "label": "Instance Type"
+          "required": true,
+          "help": "EC2 instance type to launch"
         },
         "image_id": {
           "type": "string",
+          "label": "AMI Image ID",
           "default": "ami-0c55b159cbfafe1f0",
-          "label": "AMI Image ID"
+          "required": true,
+          "help": "Target AMI image ID (e.g. ami-0c55b159cbfafe1f0)"
         },
         "override_ceiling": {
           "type": "string",
+          "label": "Override Spend Ceiling",
           "default": "false",
-          "label": "Override $0.50/hr Ceiling (true/false)"
+          "help": "Set to true to permit instances exceeding $0.50/hr (GPUs remain strictly blocked)"
         },
         "region": {
           "type": "string",
+          "label": "AWS Region",
           "default": "us-east-1",
-          "label": "AWS Region"
+          "help": "AWS target deployment region"
         }
       }
     },
@@ -158,28 +170,32 @@
         "AWS_SECRET_ACCESS_KEY"
       ],
       "input_schema": {
-        "type": "object",
-        "properties": {
-          "tag_quarantine": {
-            "type": "string",
-            "default": "true"
-          },
-          "region": {
-            "type": "string"
-          }
+        "tag_quarantine": {
+          "type": "string",
+          "label": "Tag Unattached Disks",
+          "default": "true",
+          "help": "Apply GovernanceQuarantine tag to unattached available EBS volumes"
+        },
+        "region": {
+          "type": "string",
+          "label": "AWS Region",
+          "default": "us-east-1",
+          "help": "Target AWS region"
         }
       },
       "risk": "medium",
       "inputs": {
         "tag_quarantine": {
           "type": "string",
+          "label": "Tag Unattached Disks",
           "default": "true",
-          "label": "Tag Unattached Disks (true/false)"
+          "help": "Apply GovernanceQuarantine tag to unattached available EBS volumes"
         },
         "region": {
           "type": "string",
+          "label": "AWS Region",
           "default": "us-east-1",
-          "label": "AWS Region"
+          "help": "Target AWS region"
         }
       }
     },
@@ -196,38 +212,44 @@
         "AWS_SECRET_ACCESS_KEY"
       ],
       "input_schema": {
-        "type": "object",
-        "properties": {
-          "instance_id": {
-            "type": "string"
-          },
-          "force": {
-            "type": "string",
-            "default": "false"
-          },
-          "region": {
-            "type": "string"
-          }
+        "instance_id": {
+          "type": "string",
+          "label": "Instance ID",
+          "required": true,
+          "help": "Target EC2 Instance ID to terminate (e.g. i-0123456789abcdef0)"
         },
-        "required": [
-          "instance_id"
-        ]
+        "force": {
+          "type": "string",
+          "label": "Force Kill Unmanaged Instance",
+          "default": "false",
+          "help": "Set to true to override protection if instance lacks ManagedBy: AgentGovernance tag"
+        },
+        "region": {
+          "type": "string",
+          "label": "AWS Region",
+          "default": "us-east-1",
+          "help": "Target AWS region"
+        }
       },
       "risk": "high",
       "inputs": {
         "instance_id": {
           "type": "string",
-          "label": "Instance ID (i-...)"
+          "label": "Instance ID",
+          "required": true,
+          "help": "Target EC2 Instance ID to terminate (e.g. i-0123456789abcdef0)"
         },
         "force": {
           "type": "string",
+          "label": "Force Kill Unmanaged Instance",
           "default": "false",
-          "label": "Force Kill Unmanaged Box (true/false)"
+          "help": "Set to true to override protection if instance lacks ManagedBy: AgentGovernance tag"
         },
         "region": {
           "type": "string",
+          "label": "AWS Region",
           "default": "us-east-1",
-          "label": "AWS Region"
+          "help": "Target AWS region"
         }
       }
     },
@@ -244,29 +266,32 @@
         "AWS_SECRET_ACCESS_KEY"
       ],
       "input_schema": {
-        "type": "object",
-        "properties": {
-          "db_identifier": {
-            "type": "string"
-          },
-          "region": {
-            "type": "string"
-          }
+        "db_identifier": {
+          "type": "string",
+          "label": "RDS DB Identifier",
+          "required": true,
+          "help": "RDS DB instance identifier to audit for deletion protection"
         },
-        "required": [
-          "db_identifier"
-        ]
+        "region": {
+          "type": "string",
+          "label": "AWS Region",
+          "default": "us-east-1",
+          "help": "Target AWS region"
+        }
       },
       "risk": "low",
       "inputs": {
         "db_identifier": {
           "type": "string",
-          "label": "RDS DB Identifier"
+          "label": "RDS DB Identifier",
+          "required": true,
+          "help": "RDS DB instance identifier to audit for deletion protection"
         },
         "region": {
           "type": "string",
+          "label": "AWS Region",
           "default": "us-east-1",
-          "label": "AWS Region"
+          "help": "Target AWS region"
         }
       }
     }
