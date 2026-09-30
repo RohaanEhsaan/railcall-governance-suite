@@ -2,7 +2,7 @@
   "$schema": "https://railcall.ai/schemas/module-v1.json",
   "id": "rohan/cloud-infra-airlock",
   "name": "cloud-infra-airlock",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "title": "Cloud Infrastructure Cost & Kill-Switch Airlock",
   "description": "Enterprise-grade AWS infrastructure airlock enforcing spend ceilings, strict GPU quarantines, and instance safety locks.",
   "publisher_pubkey": "4ded0aa74bbcfe3ede9202b96e78819d1703b4fdcce7915c07ae06734a5661d0",
