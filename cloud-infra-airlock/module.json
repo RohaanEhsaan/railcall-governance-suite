@@ -1,11 +1,13 @@
 {
-  "module": "rohan/cloud-infra-airlock",
+  "$schema": "https://railcall.ai/schemas/module-v1.json",
+  "id": "rohan/cloud-infra-airlock",
+  "name": "cloud-infra-airlock",
   "version": "1.5.0",
   "title": "Cloud Infrastructure Cost & Kill-Switch Airlock",
-  "description": "Zero-trust governance for AWS infrastructure, enforcing spend ceilings, strict GPU quarantines, and instance safety locks.",
-  "category": "cloud",
-  "author": "Rohan Ehsaan",
-  "runtime": "python",
+  "description": "Enterprise-grade AWS infrastructure airlock enforcing spend ceilings, strict GPU quarantines, and instance safety locks. contest:round2",
+  "publisher_pubkey": "4ded0aa74bbcfe3ede9202b96e78819d1703b4fdcce7915c07ae06734a5661d0",
+  "author": "rohan",
+  "category": "Eng",
   "entrypoint": "handlers/handler.py",
   "policy": {
     "network": [
@@ -17,13 +19,29 @@
     "subprocess": false
   },
   "secrets": [
-    "AWS_ACCESS_KEY_ID",
-    "AWS_SECRET_ACCESS_KEY",
-    "AWS_REGION",
-    "AWS_ENDPOINT_URL"
+    {
+      "name": "AWS_ACCESS_KEY_ID",
+      "label": "AWS Access Key ID (AKIA...)"
+    },
+    {
+      "name": "AWS_SECRET_ACCESS_KEY",
+      "label": "AWS Secret Access Key"
+    },
+    {
+      "name": "AWS_REGION",
+      "label": "AWS Region (e.g. us-east-1)"
+    },
+    {
+      "name": "AWS_ENDPOINT_URL",
+      "label": "AWS Custom / LocalStack Endpoint URL"
+    }
   ],
-  "commands": {
-    "aws.inspect_running_spend": {
+  "commands": [
+    {
+      "id": "aws.inspect_running_spend",
+      "name": "aws.inspect_running_spend",
+      "title": "Inspect Running Spend",
+      "description": "Paginates running EC2 instances and computes active burn rate estimates.",
       "mode": "read",
       "impact_tier": "READ_ONLY",
       "provider": "aws",
@@ -31,7 +49,6 @@
         "AWS_ACCESS_KEY_ID",
         "AWS_SECRET_ACCESS_KEY"
       ],
-      "description": "Paginates running EC2 instances and computes active burn rate estimates.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -42,12 +59,15 @@
         }
       }
     },
-    "aws.preview_instance_launch": {
+    {
+      "id": "aws.preview_instance_launch",
+      "name": "aws.preview_instance_launch",
+      "title": "Preview Instance Launch Cost",
+      "description": "Deterministic offline cost preview and GPU hardware detection without credentials.",
       "mode": "read",
       "impact_tier": "READ_ONLY",
       "provider": "aws",
       "requires": [],
-      "description": "Deterministic offline cost preview and GPU hardware detection without credentials.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -61,7 +81,11 @@
         ]
       }
     },
-    "aws.provision_instance": {
+    {
+      "id": "aws.provision_instance",
+      "name": "aws.provision_instance",
+      "title": "Provision Governed EC2 Instance",
+      "description": "Provisions an EC2 instance with governance tags; blocks GPUs and enforces spend ceilings.",
       "mode": "write_requires_approval",
       "impact_tier": "HIGH",
       "provider": "aws",
@@ -69,7 +93,6 @@
         "AWS_ACCESS_KEY_ID",
         "AWS_SECRET_ACCESS_KEY"
       ],
-      "description": "Provisions an EC2 instance with governance tags; blocks GPUs and enforces spend ceilings.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -94,7 +117,11 @@
         ]
       }
     },
-    "aws.quarantine_orphan_disks": {
+    {
+      "id": "aws.quarantine_orphan_disks",
+      "name": "aws.quarantine_orphan_disks",
+      "title": "Quarantine Orphan Disks",
+      "description": "Finds unattached EBS volumes and applies GovernanceQuarantine tags.",
       "mode": "write_requires_approval",
       "impact_tier": "MEDIUM",
       "provider": "aws",
@@ -102,7 +129,6 @@
         "AWS_ACCESS_KEY_ID",
         "AWS_SECRET_ACCESS_KEY"
       ],
-      "description": "Finds unattached EBS volumes and applies GovernanceQuarantine tags.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -117,7 +143,11 @@
         }
       }
     },
-    "aws.emergency_killswitch": {
+    {
+      "id": "aws.emergency_killswitch",
+      "name": "aws.emergency_killswitch",
+      "title": "Emergency Killswitch",
+      "description": "Terminates agent-governed instances; refuses unmanaged instances unless force=true.",
       "mode": "write_requires_approval",
       "impact_tier": "HIGH",
       "provider": "aws",
@@ -125,7 +155,6 @@
         "AWS_ACCESS_KEY_ID",
         "AWS_SECRET_ACCESS_KEY"
       ],
-      "description": "Terminates agent-governed instances; refuses unmanaged instances unless force=true.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -146,7 +175,11 @@
         ]
       }
     },
-    "aws.verify_immutable_db_lock": {
+    {
+      "id": "aws.verify_immutable_db_lock",
+      "name": "aws.verify_immutable_db_lock",
+      "title": "Verify RDS Deletion Protection",
+      "description": "Audits RDS instances to verify deletion protection is enabled.",
       "mode": "read",
       "impact_tier": "READ_ONLY",
       "provider": "aws",
@@ -154,7 +187,6 @@
         "AWS_ACCESS_KEY_ID",
         "AWS_SECRET_ACCESS_KEY"
       ],
-      "description": "Audits RDS instances to verify deletion protection is enabled.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -171,7 +203,6 @@
         ]
       }
     }
-  },
-  "manifest_version": 2,
-  "publisher_pubkey": "4ded0aa74bbcfe3ede9202b96e78819d1703b4fdcce7915c07ae06734a5661d0"
+  ],
+  "manifest_version": 2
 }
