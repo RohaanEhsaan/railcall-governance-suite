@@ -9,15 +9,6 @@
   "author": "rohan",
   "category": "Eng",
   "entrypoint": "handlers/handler.py",
-  "policy": {
-    "network": [
-      "127.0.0.1:4566",
-      "localhost:4566",
-      "*.amazonaws.com"
-    ],
-    "filesystem_writes": false,
-    "subprocess": false
-  },
   "secrets": [
     {
       "name": "AWS_ACCESS_KEY_ID",
@@ -199,5 +190,14 @@
       }
     }
   ],
-  "manifest_version": 2
+  "manifest_version": 2,
+  "requires": {
+    "network": [
+      "127.0.0.1:4566",
+      "localhost:4566",
+      "*.amazonaws.com"
+    ],
+    "filesystem_writes": false,
+    "subprocess": false
+  }
 }
