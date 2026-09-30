@@ -2,9 +2,9 @@
   "$schema": "https://railcall.ai/schemas/module-v1.json",
   "id": "rohan/cloud-infra-airlock",
   "name": "cloud-infra-airlock",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "title": "Cloud Infrastructure Cost & Kill-Switch Airlock",
-  "description": "Enterprise-grade AWS infrastructure airlock enforcing spend ceilings, strict GPU quarantines, and instance safety locks. contest:round2",
+  "description": "Enterprise-grade AWS infrastructure airlock enforcing spend ceilings, strict GPU quarantines, and instance safety locks.",
   "publisher_pubkey": "4ded0aa74bbcfe3ede9202b96e78819d1703b4fdcce7915c07ae06734a5661d0",
   "author": "rohan",
   "category": "Eng",
@@ -29,11 +29,11 @@
     },
     {
       "name": "AWS_REGION",
-      "label": "AWS Region (e.g. us-east-1)"
+      "label": "AWS Region (optional, defaults to us-east-1)"
     },
     {
       "name": "AWS_ENDPOINT_URL",
-      "label": "AWS Custom / LocalStack Endpoint URL"
+      "label": "AWS Custom / LocalStack Endpoint URL (optional)"
     }
   ],
   "commands": [
@@ -53,8 +53,7 @@
         "type": "object",
         "properties": {
           "region": {
-            "type": "string",
-            "default": "us-east-1"
+            "type": "string"
           }
         }
       }
@@ -107,8 +106,7 @@
             "default": "false"
           },
           "region": {
-            "type": "string",
-            "default": "us-east-1"
+            "type": "string"
           }
         },
         "required": [
@@ -137,8 +135,7 @@
             "default": "true"
           },
           "region": {
-            "type": "string",
-            "default": "us-east-1"
+            "type": "string"
           }
         }
       }
@@ -166,8 +163,7 @@
             "default": "false"
           },
           "region": {
-            "type": "string",
-            "default": "us-east-1"
+            "type": "string"
           }
         },
         "required": [
@@ -194,8 +190,7 @@
             "type": "string"
           },
           "region": {
-            "type": "string",
-            "default": "us-east-1"
+            "type": "string"
           }
         },
         "required": [
