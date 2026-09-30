@@ -47,7 +47,8 @@
             "type": "string"
           }
         }
-      }
+      },
+      "risk": "low"
     },
     {
       "id": "aws.preview_instance_launch",
@@ -69,7 +70,8 @@
         "required": [
           "instance_type"
         ]
-      }
+      },
+      "risk": "low"
     },
     {
       "id": "aws.provision_instance",
@@ -104,7 +106,8 @@
           "instance_type",
           "image_id"
         ]
-      }
+      },
+      "risk": "high"
     },
     {
       "id": "aws.quarantine_orphan_disks",
@@ -129,7 +132,8 @@
             "type": "string"
           }
         }
-      }
+      },
+      "risk": "medium"
     },
     {
       "id": "aws.emergency_killswitch",
@@ -160,7 +164,8 @@
         "required": [
           "instance_id"
         ]
-      }
+      },
+      "risk": "high"
     },
     {
       "id": "aws.verify_immutable_db_lock",
@@ -187,7 +192,8 @@
         "required": [
           "db_identifier"
         ]
-      }
+      },
+      "risk": "low"
     }
   ],
   "manifest_version": 2,
