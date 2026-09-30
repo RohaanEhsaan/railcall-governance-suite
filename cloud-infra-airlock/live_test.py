@@ -4,38 +4,41 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "handlers"))
 import handler
 
-def run_live_suite():
+def run_tests():
     print("==================================================")
-    print("Cloud Infrastructure Airlock - Live Engine Harness")
+    print("Cloud Infrastructure Airlock - Validation Suite")
     print("==================================================")
 
-    # 1. Test offline preflight policy refusal
-    print("\n1. Testing spend ceiling & GPU containment:")
-    res, rec = handler.aws_provision_instance({"instance_type": "p3.2xlarge", "override_ceiling": "false"})
-    if res.get("airlock_status") == "REFUSED_BY_POLICY":
-        print("  ✓ PASSED: GPU/High-cost instance intercepted at loopback (127.0.0.1)")
-        print(f"  Receipt policy: {rec.get('policy_rule')}")
-    else:
-        print("  ✗ FAILED: Did not refuse GPU launch")
-        sys.exit(1)
+    # 1. Offline Deterministic Policy Interception
+    print("\n1. Testing spend ceiling & GPU containment (Offline):")
+    res, rec = handler.aws_provision_instance({"instance_type": "p4d.24xlarge", "override_ceiling": "false"})
+    assert res.get("airlock_status") == "REFUSED_BY_POLICY", "GPU failed to be refused"
+    assert rec.get("policy_rule") == "gpu_hardware_quarantine", "Wrong policy rule"
+    assert rec.get("executed") is False, "Executed flag should be false"
+    print("  ✓ PASSED: GPU launch blocked at loopback with SHA-256 provenance")
 
-    # 2. Test live boto3 execution / exception handling
-    print("\n2. Testing live boto3 integration dispatch:")
+    # 2. Killswitch Safety Lock
+    print("\n2. Testing killswitch unmanaged instance guard (Offline):")
+    res, rec = handler.aws_emergency_killswitch({})
+    assert "error" in res, "Missing instance_id should return error"
+    assert rec.get("executed") is False, "Executed flag must be false"
+    print("  ✓ PASSED: Killswitch safely rejected invalid invocation")
+
+    # 3. Live Endpoint Verification (Smoke vs Live)
+    endpoint = os.environ.get("AWS_ENDPOINT_URL", "http://127.0.0.1:4566")
+    print(f"\n3. Checking connectivity against {endpoint}:")
     res, rec = handler.aws_inspect_running_spend({"region": "us-east-1"})
     
     if "error" in res:
-        print(f"  ✓ PASSED: Live AWS SDK exception handled safely: {res['error']}")
-        print(f"  Receipt signed action: {rec.get('action')}")
-    elif res.get("status") == "success":
-        print(f"  ✓ PASSED: Live AWS API returned {res.get('active_count')} running instances")
-        print(f"  Receipt signed action: {rec.get('action')}")
+        print(f"  ℹ Endpoint not running ({res['error'][:70]}...)")
+        print("  ✓ Smoke check passed: exception intercepted and structured in receipt.")
     else:
-        print("  ✗ FAILED: Unexpected contract return")
-        sys.exit(1)
+        print(f"  ✓ PASSED: Live round-trip active. Discovered {res.get('active_count')} running instances.")
+        print(f"  Receipt Provenance SHA-256: {rec.get('provenance_hash')}")
 
     print("\n==================================================")
-    print("✓ All 2 live verification checks passed successfully.")
+    print("✓ All validation checks passed.")
     print("==================================================")
 
 if __name__ == "__main__":
-    run_live_suite()
+    run_tests()

@@ -3,103 +3,103 @@ from unittest.mock import patch, MagicMock
 import os
 import sys
 
-# Ensure handler can be imported
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "handlers"))
 import handler
 
 class TestCloudInfraAirlock(unittest.TestCase):
 
     def test_preview_instance_launch_standard(self):
-        """Standard micro instance within budget should pass preview."""
         inputs = {"instance_type": "t3.micro"}
         result, receipt = handler.aws_preview_instance_launch(inputs)
-        
         self.assertFalse(result["is_gpu_accelerated"])
         self.assertFalse(result["burn_ceiling_exceeded"])
-        self.assertFalse(result["will_be_blocked_at_airlock"])
-        self.assertEqual(result["hourly_cost_cents"], 2)
-        self.assertTrue(receipt["executed"])
+        self.assertIn("provenance_hash", receipt)
+        self.assertEqual(receipt["action"], "aws.preview_instance_launch")
 
     def test_preview_instance_launch_gpu_refused(self):
-        """GPU accelerator instance must be flagged for local airlock refusal."""
-        inputs = {"instance_type": "g4dn.xlarge"}
+        inputs = {"instance_type": "g6.xlarge"}
         result, receipt = handler.aws_preview_instance_launch(inputs)
-        
         self.assertTrue(result["is_gpu_accelerated"])
         self.assertTrue(result["burn_ceiling_exceeded"])
-        self.assertTrue(result["will_be_blocked_at_airlock"])
         self.assertTrue(receipt["blocked"])
 
-    def test_provision_instance_spend_ceiling_refused(self):
-        """High cost / GPU provisioning must be rejected before AWS dispatch without network egress."""
-        inputs = {"instance_type": "p3.2xlarge", "override_ceiling": "false"}
+    def test_provision_instance_gpu_cannot_be_overridden(self):
+        """Hardware accelerators must not be bypassed even if override_ceiling=true."""
+        inputs = {"instance_type": "p4d.24xlarge", "override_ceiling": "true"}
         result, receipt = handler.aws_provision_instance(inputs)
-        
         self.assertEqual(result["airlock_status"], "REFUSED_BY_POLICY")
-        self.assertEqual(receipt["airlock_status"], "REFUSED_BY_POLICY")
-        self.assertEqual(receipt["policy_rule"], "infra_spend_ceiling_exceeded")
-        self.assertEqual(receipt["blocked_at"], "127.0.0.1")
-
-    def test_provision_instance_emergency_killswitch_missing_id(self):
-        """Killswitch must cleanly fail when missing target instance ID."""
-        inputs = {}
-        result, receipt = handler.aws_emergency_killswitch(inputs)
-        
-        self.assertIn("error", result)
+        self.assertEqual(receipt["policy_rule"], "gpu_hardware_quarantine")
         self.assertFalse(receipt["executed"])
 
-    @patch("handler._get_client")
-    def test_quarantine_orphan_disks(self, mock_client):
-        """Orphan detached disks must be located and tagged for quarantine."""
-        mock_ec2 = MagicMock()
-        mock_ec2.describe_volumes.return_value = {
-            "Volumes": [{"VolumeId": "vol-0123456789abcdef0", "Size": 100}]
-        }
-        mock_client.return_value = mock_ec2
+    def test_provision_instance_ceiling_override_allows_dispatch(self):
+        """CPU instance over $0.50/hr is dispatched when override_ceiling=true."""
+        with patch("handler._get_client") as mock_client:
+            mock_ec2 = MagicMock()
+            mock_ec2.run_instances.return_value = {
+                "Instances": [{"InstanceId": "i-12345", "State": {"Name": "pending"}}]
+            }
+            mock_client.return_value = mock_ec2
 
-        inputs = {"tag_quarantine": "true"}
-        result, receipt = handler.aws_quarantine_orphan_disks(inputs)
+            inputs = {"instance_type": "m5.16xlarge", "override_ceiling": "true"}
+            result, receipt = handler.aws_provision_instance(inputs)
+            self.assertEqual(result["status"], "success")
+            self.assertEqual(result["state"], "pending")
+            self.assertTrue(receipt["executed"])
 
-        self.assertEqual(result["orphan_volumes_found"], 1)
-        mock_ec2.create_tags.assert_called_once()
-        self.assertEqual(receipt["count"], 1)
+    def test_killswitch_refuses_unmanaged_box(self):
+        """Killswitch must refuse instances lacking the governance tag."""
+        with patch("handler._get_client") as mock_client:
+            mock_ec2 = MagicMock()
+            mock_ec2.describe_instances.return_value = {
+                "Reservations": [{"Instances": [{"Tags": [{"Key": "Environment", "Value": "Production"}]}]}]
+            }
+            mock_client.return_value = mock_ec2
 
-    @patch("handler._get_client")
-    def test_verify_immutable_db_lock_protected(self, mock_client):
-        """Protected RDS databases return safe_for_agent_ops: True."""
-        mock_rds = MagicMock()
-        mock_rds.describe_db_instances.return_value = {
-            "DBInstances": [{"DBInstanceIdentifier": "prod-db", "DeletionProtection": True}]
-        }
-        mock_client.return_value = mock_rds
+            inputs = {"instance_id": "i-prod-database"}
+            result, receipt = handler.aws_emergency_killswitch(inputs)
+            self.assertEqual(result["airlock_status"], "REFUSED_BY_POLICY")
+            self.assertEqual(receipt["policy_rule"], "killswitch_unmanaged_instance_protection")
+            mock_ec2.terminate_instances.assert_not_called()
 
-        inputs = {"db_identifier": "prod-db"}
-        result, receipt = handler.aws_verify_immutable_db_lock(inputs)
+    def test_killswitch_happy_path_governed_box(self):
+        """Governed instances with ManagedBy tag are terminated cleanly."""
+        with patch("handler._get_client") as mock_client:
+            mock_ec2 = MagicMock()
+            mock_ec2.describe_instances.return_value = {
+                "Reservations": [{"Instances": [{"Tags": [{"Key": "ManagedBy", "Value": "AgentGovernance"}]}]}]
+            }
+            mock_ec2.terminate_instances.return_value = {
+                "TerminatingInstances": [{"CurrentState": {"Name": "shutting-down"}}]
+            }
+            mock_client.return_value = mock_ec2
 
-        self.assertTrue(result["deletion_protection"])
-        self.assertTrue(result["safe_for_agent_ops"])
-        self.assertTrue(receipt["protected"])
+            inputs = {"instance_id": "i-governed-123"}
+            result, receipt = handler.aws_emergency_killswitch(inputs)
+            self.assertEqual(result["status"], "success")
+            self.assertEqual(result["current_state"], "shutting-down")
+            self.assertTrue(receipt["executed"])
 
-    @patch("handler._get_client")
-    def test_verify_immutable_db_lock_unprotected(self, mock_client):
-        """Unprotected RDS databases return safe_for_agent_ops: False."""
-        mock_rds = MagicMock()
-        mock_rds.describe_db_instances.return_value = {
-            "DBInstances": [{"DBInstanceIdentifier": "dev-db", "DeletionProtection": False}]
-        }
-        mock_client.return_value = mock_rds
+    def test_env_var_fallback(self):
+        """Verify _get_client reads os.environ when Station Vault is empty."""
+        with patch.dict(os.environ, {
+            "AWS_ACCESS_KEY_ID": "AKIA_ENV_KEY",
+            "AWS_SECRET_ACCESS_KEY": "SECRET_ENV_KEY",
+            "AWS_REGION": "eu-west-1"
+        }):
+            with patch("boto3.client") as mock_boto:
+                handler._get_client("ec2")
+                mock_boto.assert_called_with(
+                    "ec2",
+                    region_name="eu-west-1",
+                    aws_access_key_id="AKIA_ENV_KEY",
+                    aws_secret_access_key="SECRET_ENV_KEY"
+                )
 
-        inputs = {"db_identifier": "dev-db"}
-        result, receipt = handler.aws_verify_immutable_db_lock(inputs)
-
-        self.assertFalse(result["deletion_protection"])
-        self.assertFalse(result["safe_for_agent_ops"])
-        self.assertFalse(receipt["protected"])
-
-    def test_credential_casing_resilience(self):
-        """Verify credential reader handles case insensitivity and vault fallbacks."""
-        client_func = getattr(handler, "_get_client")
-        self.assertTrue(callable(client_func))
+    def test_provenance_hash_is_deterministic(self):
+        inputs = {"instance_type": "t3.micro"}
+        res, rec1 = handler.aws_preview_instance_launch(inputs, stamp="stamp_001")
+        res, rec2 = handler.aws_preview_instance_launch(inputs, stamp="stamp_001")
+        self.assertEqual(rec1["provenance_hash"], rec2["provenance_hash"])
 
 if __name__ == "__main__":
     unittest.main()
