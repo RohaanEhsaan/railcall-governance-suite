@@ -278,7 +278,7 @@
       "localhost:4566",
       "*.amazonaws.com"
     ],
-    "filesystem_writes": false,
+    "filesystem_writes": [],
     "subprocess": false
   }
 }

@@ -24,7 +24,7 @@ ESTIMATED_RATES_CENTS = {
     "c5.large": 9,
     "c5.xlarge": 17,
 }
-DEFAULT_HOURLY_RATE_CENTS = 25  # Standard baseline fallback ($0.25/hr)
+DEFAULT_HOURLY_RATE_CENTS = 60  # Standard baseline fallback ($0.25/hr)
 CEILING_CENTS = 50              # $0.50/hr airlock threshold
 
 MANAGED_TAG_KEY = "ManagedBy"

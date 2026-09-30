@@ -147,5 +147,13 @@ class TestCloudInfraAirlock(unittest.TestCase):
                 self.assertEqual(mock_boto.call_args[1]["aws_access_key_id"], "AKIA_CLEAN_KEY")
                 self.assertEqual(mock_boto.call_args[1]["aws_secret_access_key"], "SECRET_CLEAN_KEY")
 
+
+    def test_unrecognized_instance_fails_closed(self):
+        """Unrecognized instance types must default above ceiling (60c) and be refused."""
+        inputs = {"instance_type": "c6i.large", "image_id": "ami-12345", "override_ceiling": "false"}
+        result, receipt = handler.aws_provision_instance(inputs)
+        self.assertEqual(result["airlock_status"], "REFUSED_BY_POLICY")
+        self.assertEqual(receipt["policy_rule"], "infra_spend_ceiling_exceeded")
+
 if __name__ == "__main__":
     unittest.main()
