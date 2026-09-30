@@ -2,7 +2,7 @@
   "$schema": "https://railcall.ai/schemas/module-v1.json",
   "id": "rohan/cloud-infra-airlock",
   "name": "cloud-infra-airlock",
-  "version": "1.5.3",
+  "version": "1.5.4",
   "title": "Cloud Infrastructure Cost & Kill-Switch Airlock",
   "description": "Enterprise-grade AWS infrastructure airlock enforcing spend ceilings, strict GPU quarantines, and instance safety locks.",
   "publisher_pubkey": "4ded0aa74bbcfe3ede9202b96e78819d1703b4fdcce7915c07ae06734a5661d0",
@@ -48,7 +48,14 @@
           }
         }
       },
-      "risk": "low"
+      "risk": "low",
+      "inputs": {
+        "region": {
+          "type": "string",
+          "default": "us-east-1",
+          "label": "AWS Region"
+        }
+      }
     },
     {
       "id": "aws.preview_instance_launch",
@@ -71,7 +78,14 @@
           "instance_type"
         ]
       },
-      "risk": "low"
+      "risk": "low",
+      "inputs": {
+        "instance_type": {
+          "type": "string",
+          "default": "t3.micro",
+          "label": "Instance Type (e.g. t3.micro)"
+        }
+      }
     },
     {
       "id": "aws.provision_instance",
@@ -107,7 +121,29 @@
           "image_id"
         ]
       },
-      "risk": "high"
+      "risk": "high",
+      "inputs": {
+        "instance_type": {
+          "type": "string",
+          "default": "t3.micro",
+          "label": "Instance Type"
+        },
+        "image_id": {
+          "type": "string",
+          "default": "ami-0c55b159cbfafe1f0",
+          "label": "AMI Image ID"
+        },
+        "override_ceiling": {
+          "type": "string",
+          "default": "false",
+          "label": "Override $0.50/hr Ceiling (true/false)"
+        },
+        "region": {
+          "type": "string",
+          "default": "us-east-1",
+          "label": "AWS Region"
+        }
+      }
     },
     {
       "id": "aws.quarantine_orphan_disks",
@@ -133,7 +169,19 @@
           }
         }
       },
-      "risk": "medium"
+      "risk": "medium",
+      "inputs": {
+        "tag_quarantine": {
+          "type": "string",
+          "default": "true",
+          "label": "Tag Unattached Disks (true/false)"
+        },
+        "region": {
+          "type": "string",
+          "default": "us-east-1",
+          "label": "AWS Region"
+        }
+      }
     },
     {
       "id": "aws.emergency_killswitch",
@@ -165,7 +213,23 @@
           "instance_id"
         ]
       },
-      "risk": "high"
+      "risk": "high",
+      "inputs": {
+        "instance_id": {
+          "type": "string",
+          "label": "Instance ID (i-...)"
+        },
+        "force": {
+          "type": "string",
+          "default": "false",
+          "label": "Force Kill Unmanaged Box (true/false)"
+        },
+        "region": {
+          "type": "string",
+          "default": "us-east-1",
+          "label": "AWS Region"
+        }
+      }
     },
     {
       "id": "aws.verify_immutable_db_lock",
@@ -193,7 +257,18 @@
           "db_identifier"
         ]
       },
-      "risk": "low"
+      "risk": "low",
+      "inputs": {
+        "db_identifier": {
+          "type": "string",
+          "label": "RDS DB Identifier"
+        },
+        "region": {
+          "type": "string",
+          "default": "us-east-1",
+          "label": "AWS Region"
+        }
+      }
     }
   ],
   "manifest_version": 2,
