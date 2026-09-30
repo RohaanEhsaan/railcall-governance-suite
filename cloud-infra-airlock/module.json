@@ -1,0 +1,169 @@
+{
+  "spec_version": "2.0",
+  "id": "rohan/cloud-infra-airlock",
+  "name": "cloud-infra-airlock",
+  "namespace": "rohan",
+  "version": "1.4.2",
+  "title": "Cloud Infrastructure Cost & Kill-Switch Airlock",
+  "description": "Governed cloud compute operations for autonomous AI agents. Preflight cost calculation, automatic GPU/cost ceiling refusal on 127.0.0.1, orphan disk quarantine, and signed emergency killswitch.",
+  "category": "Eng",
+  "tags": [
+    "aws",
+    "cloud",
+    "cost-governance",
+    "killswitch"
+  ],
+  "secrets": [
+    "AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY"
+  ],
+  "requires": {
+    "network": [
+      "127.0.0.1:4566",
+      "localhost:4566",
+      "ec2.us-east-1.amazonaws.com",
+      "rds.us-east-1.amazonaws.com",
+      "*.amazonaws.com"
+    ],
+    "subprocess": false,
+    "filesystem_writes": false
+  },
+  "entrypoint": "handlers/handler.py",
+  "commands": [
+    {
+      "id": "aws.inspect_running_spend",
+      "title": "Inspect Running Compute Spend",
+      "description": "Scans running instances and calculates active aggregate hourly burn rate.",
+      "provider": "aws",
+      "requires": [
+        "AWS_ACCESS_KEY_ID",
+        "AWS_SECRET_ACCESS_KEY"
+      ],
+      "mode": "read",
+      "risk": "low",
+      "input_schema": {
+        "region": {
+          "type": "string",
+          "label": "AWS Region",
+          "default": "us-east-1"
+        }
+      }
+    },
+    {
+      "id": "aws.preview_instance_launch",
+      "title": "Preview Instance Launch Cost",
+      "description": "Performs local preflight cost checks before an agent issues a provisioning call.",
+      "provider": "aws",
+      "requires": [
+        "AWS_ACCESS_KEY_ID",
+        "AWS_SECRET_ACCESS_KEY"
+      ],
+      "mode": "read",
+      "risk": "low",
+      "input_schema": {
+        "instance_type": {
+          "type": "string",
+          "label": "EC2 Instance Type",
+          "default": "t3.micro",
+          "required": true
+        }
+      }
+    },
+    {
+      "id": "aws.provision_instance",
+      "title": "Provision Governed EC2 Instance",
+      "description": "Spawns an EC2 instance. Intercepts and rejects instances exceeding $0.50/hr ceiling or GPU hardware on 127.0.0.1.",
+      "provider": "aws",
+      "requires": [
+        "AWS_ACCESS_KEY_ID",
+        "AWS_SECRET_ACCESS_KEY"
+      ],
+      "mode": "write_requires_approval",
+      "risk": "high",
+      "input_schema": {
+        "instance_type": {
+          "type": "string",
+          "label": "EC2 Instance Type",
+          "default": "t3.micro",
+          "required": true
+        },
+        "image_id": {
+          "type": "string",
+          "label": "AMI Image ID",
+          "default": "ami-12345678",
+          "required": true
+        },
+        "override_ceiling": {
+          "type": "string",
+          "label": "Override Cost Ceiling",
+          "default": "false"
+        }
+      }
+    },
+    {
+      "id": "aws.quarantine_orphan_disks",
+      "title": "Quarantine Orphan EBS Volumes",
+      "description": "Finds detached/available EBS volumes wasting spend and tags them for quarantine snapshot.",
+      "provider": "aws",
+      "requires": [
+        "AWS_ACCESS_KEY_ID",
+        "AWS_SECRET_ACCESS_KEY"
+      ],
+      "mode": "write_requires_approval",
+      "risk": "medium",
+      "input_schema": {
+        "tag_quarantine": {
+          "type": "string",
+          "label": "Tag Quarantine Status",
+          "default": "true"
+        }
+      }
+    },
+    {
+      "id": "aws.emergency_killswitch",
+      "title": "Emergency Teardown Rogue Agent Instances",
+      "description": "Instantly terminates rogue instances launched without approved signed consent tokens.",
+      "provider": "aws",
+      "requires": [
+        "AWS_ACCESS_KEY_ID",
+        "AWS_SECRET_ACCESS_KEY"
+      ],
+      "mode": "write_requires_approval",
+      "risk": "high",
+      "input_schema": {
+        "instance_id": {
+          "type": "string",
+          "label": "Instance ID to Terminate",
+          "required": true
+        },
+        "reason": {
+          "type": "string",
+          "label": "Teardown Reason",
+          "default": "Rogue agent containment"
+        }
+      }
+    },
+    {
+      "id": "aws.verify_immutable_db_lock",
+      "title": "Verify RDS Immutable Deletion Lock",
+      "description": "Verifies that target RDS databases have termination protection enabled before agent migrations.",
+      "provider": "aws",
+      "requires": [
+        "AWS_ACCESS_KEY_ID",
+        "AWS_SECRET_ACCESS_KEY"
+      ],
+      "mode": "read",
+      "risk": "low",
+      "input_schema": {
+        "db_identifier": {
+          "type": "string",
+          "label": "RDS DB Identifier",
+          "default": "prod-db",
+          "required": true
+        }
+      }
+    }
+  ],
+  "publisher_pubkey": "4ded0aa74bbcfe3ede9202b96e78819d1703b4fdcce7915c07ae06734a5661d0",
+  "manifest_version": 2
+}
