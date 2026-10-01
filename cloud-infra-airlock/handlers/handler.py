@@ -109,7 +109,7 @@ def _get_client(service_name: str, region: str = None):
 
     return boto3.client(service_name, **kwargs)
 
-def aws_inspect_running_spend(inputs: dict, stamp: str = None):
+def aws_inspect_running_spend(inputs=None, context=None, stamp=None, **kwargs):
     action = "aws.inspect_running_spend"
     region = inputs.get("region")
     try:
@@ -157,7 +157,7 @@ def aws_inspect_running_spend(inputs: dict, stamp: str = None):
         }
         return result, receipt
 
-def aws_preview_instance_launch(inputs: dict, stamp: str = None):
+def aws_preview_instance_launch(inputs=None, context=None, stamp=None, **kwargs):
     action = "aws.preview_instance_launch"
     raw_itype = inputs.get("instance_type", "t3.micro")
     itype = str(raw_itype).strip().lower()
@@ -180,7 +180,7 @@ def aws_preview_instance_launch(inputs: dict, stamp: str = None):
     }
     return result, receipt
 
-def aws_provision_instance(inputs: dict, stamp: str = None):
+def aws_provision_instance(inputs=None, context=None, stamp=None, **kwargs):
     action = "aws.provision_instance"
     raw_itype = inputs.get("instance_type", "t3.micro")
     itype = str(raw_itype).strip().lower()
@@ -276,7 +276,7 @@ def aws_provision_instance(inputs: dict, stamp: str = None):
         }
         return result, receipt
 
-def aws_quarantine_orphan_disks(inputs: dict, stamp: str = None):
+def aws_quarantine_orphan_disks(inputs=None, context=None, stamp=None, **kwargs):
     action = "aws.quarantine_orphan_disks"
     tag_quarantine = str(inputs.get("tag_quarantine", "true")).lower() == "true"
     region = inputs.get("region")
@@ -328,7 +328,7 @@ def aws_quarantine_orphan_disks(inputs: dict, stamp: str = None):
         }
         return result, receipt
 
-def aws_emergency_killswitch(inputs: dict, stamp: str = None):
+def aws_emergency_killswitch(inputs=None, context=None, stamp=None, **kwargs):
     action = "aws.emergency_killswitch"
     instance_id = inputs.get("instance_id")
     force = str(inputs.get("force", "false")).lower() == "true"
@@ -390,7 +390,7 @@ def aws_emergency_killswitch(inputs: dict, stamp: str = None):
         }
         return result, receipt
 
-def aws_verify_immutable_db_lock(inputs: dict, stamp: str = None):
+def aws_verify_immutable_db_lock(inputs=None, context=None, stamp=None, **kwargs):
     action = "aws.verify_immutable_db_lock"
     db_id = inputs.get("db_identifier")
     region = inputs.get("region")
