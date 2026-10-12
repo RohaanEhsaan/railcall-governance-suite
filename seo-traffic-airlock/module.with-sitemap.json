@@ -1,0 +1,151 @@
+{
+  "$schema": "https://railcall.ai/schemas/module-v1.json",
+  "id": "rohan/seo-traffic-airlock",
+  "name": "seo-traffic-airlock",
+  "version": "0.1.0",
+  "title": "SEO Traffic Airlock",
+  "description": "Read-only SEO preflight for autonomous agents: audit a candidate robots.txt, preview redirect rules and verify sitemap URLs on your own site. Network egress is limited to the single host you configure.",
+  "publisher_pubkey": "4ded0aa74bbcfe3ede9202b96e78819d1703b4fdcce7915c07ae06734a5661d0",
+  "author": "rohan",
+  "category": "Marketing",
+  "entrypoint": "handlers/handler.py",
+  "secrets": [
+    {
+      "name": "SEO_SITE_HOST",
+      "label": "Site host this module may fetch (e.g. www.example.com)"
+    }
+  ],
+  "commands": [
+    {
+      "id": "seo.audit_robots_txt",
+      "name": "seo.audit_robots_txt",
+      "title": "Audit robots.txt Before Deploy",
+      "description": "Evaluates a candidate robots.txt locally with RFC 9309 matching (wildcards, $, longest match wins) and flags site-wide or homepage blocks before anything is deployed. Zero network egress.",
+      "mode": "read",
+      "impact_tier": "READ_ONLY",
+      "risk": "low",
+      "side_effects": "none",
+      "provider": "seo",
+      "requires": [],
+      "input_schema": {
+        "robots_txt": {
+          "type": "string",
+          "label": "robots.txt contents",
+          "required": true,
+          "help": "Paste the full candidate file. An empty value means allow-all."
+        },
+        "test_paths": {
+          "type": "string",
+          "label": "Paths to test",
+          "default": "/",
+          "help": "Comma- or newline-separated paths, e.g. /products, /admin/login?x=1 (max 200)."
+        },
+        "user_agent": {
+          "type": "string",
+          "label": "Crawler to evaluate as",
+          "default": "Googlebot",
+          "help": "Product token such as Googlebot, Bingbot or *."
+        }
+      },
+      "inputs": {
+        "robots_txt": {
+          "type": "string",
+          "label": "robots.txt contents",
+          "required": true,
+          "help": "Paste the full candidate file. An empty value means allow-all."
+        },
+        "test_paths": {
+          "type": "string",
+          "label": "Paths to test",
+          "default": "/",
+          "help": "Comma- or newline-separated paths, e.g. /products, /admin/login?x=1 (max 200)."
+        },
+        "user_agent": {
+          "type": "string",
+          "label": "Crawler to evaluate as",
+          "default": "Googlebot",
+          "help": "Product token such as Googlebot, Bingbot or *."
+        }
+      }
+    },
+    {
+      "id": "seo.preview_redirect_graph",
+      "name": "seo.preview_redirect_graph",
+      "title": "Preview Redirect Graph",
+      "description": "Analyses proposed redirect rules locally: finds loops, self-redirects, conflicting targets, chains (with flattened suggestions) and oversized batches. Zero network egress.",
+      "mode": "read",
+      "impact_tier": "READ_ONLY",
+      "risk": "low",
+      "side_effects": "none",
+      "provider": "seo",
+      "requires": [],
+      "input_schema": {
+        "redirect_rules": {
+          "type": "string",
+          "label": "Redirect rules",
+          "required": true,
+          "help": "One rule per line (or separated by ;): /old -> /new. A JSON list of {source, target} also works (max 5000)."
+        }
+      },
+      "inputs": {
+        "redirect_rules": {
+          "type": "string",
+          "label": "Redirect rules",
+          "required": true,
+          "help": "One rule per line (or separated by ;): /old -> /new. A JSON list of {source, target} also works (max 5000)."
+        }
+      }
+    },
+    {
+      "id": "seo.verify_sitemap_urls",
+      "name": "seo.verify_sitemap_urls",
+      "title": "Verify Sitemap URLs",
+      "description": "Fetches a sitemap on your own configured host and checks the HTTP status and X-Robots-Tag of its URLs. Every request is pinned to SEO_SITE_HOST; redirects are reported, never followed.",
+      "mode": "read",
+      "impact_tier": "READ_ONLY",
+      "risk": "low",
+      "side_effects": "none",
+      "provider": "seo",
+      "requires": [
+        "SEO_SITE_HOST"
+      ],
+      "input_schema": {
+        "sitemap_url": {
+          "type": "string",
+          "label": "Sitemap URL",
+          "required": true,
+          "help": "Full http(s) URL of a sitemap on your configured host."
+        },
+        "max_urls": {
+          "type": "string",
+          "label": "URLs to check",
+          "default": "25",
+          "help": "How many sitemap URLs to probe (1-100)."
+        }
+      },
+      "inputs": {
+        "sitemap_url": {
+          "type": "string",
+          "label": "Sitemap URL",
+          "required": true,
+          "help": "Full http(s) URL of a sitemap on your configured host."
+        },
+        "max_urls": {
+          "type": "string",
+          "label": "URLs to check",
+          "default": "25",
+          "help": "How many sitemap URLs to probe (1-100)."
+        }
+      }
+    }
+  ],
+  "manifest_version": 2,
+  "requires": {
+    "network": [
+      "REPLACE-ME.example.com"
+    ],
+    "filesystem_writes": [],
+    "subprocess": false
+  },
+  "provider": "seo"
+}

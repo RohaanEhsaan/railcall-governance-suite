@@ -1,0 +1,10 @@
+{
+  "attestation": {
+    "issued_at": "2026-10-12T17:53:15.223Z",
+    "publisher_name": "Rohan",
+    "publisher_pubkey": "4ded0aa74bbcfe3ede9202b96e78819d1703b4fdcce7915c07ae06734a5661d0",
+    "publisher_slug": "rohan",
+    "schema": "railcall_publisher_attestation.v1"
+  },
+  "signature": "8f879c465038be9b20539fe21693f177468799ffd494c1b6f88bd1a3b80ec6d123e2697fa17ed8ba05053e5434651993a7e35cfc240116a3712a7bec07c7d40b"
+}

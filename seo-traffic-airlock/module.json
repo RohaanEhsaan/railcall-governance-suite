@@ -1,0 +1,101 @@
+{
+  "$schema": "https://railcall.ai/schemas/module-v1.json",
+  "id": "rohan/seo-traffic-airlock",
+  "name": "seo-traffic-airlock",
+  "version": "0.1.1",
+  "title": "SEO Traffic Airlock",
+  "description": "Read-only SEO preflight for autonomous agents: audit a candidate robots.txt and preview redirect rules before anything is deployed. Runs fully offline - zero network egress, nothing is written or sent.",
+  "publisher_pubkey": "4ded0aa74bbcfe3ede9202b96e78819d1703b4fdcce7915c07ae06734a5661d0",
+  "author": "rohan",
+  "category": "Marketing",
+  "entrypoint": "handlers/handler.py",
+  "commands": [
+    {
+      "id": "seo.audit_robots_txt",
+      "name": "seo.audit_robots_txt",
+      "title": "Audit robots.txt Before Deploy",
+      "description": "Evaluates a candidate robots.txt locally with RFC 9309 matching (wildcards, $, longest match wins) and flags site-wide or homepage blocks before anything is deployed. Zero network egress.",
+      "mode": "read",
+      "impact_tier": "READ_ONLY",
+      "risk": "low",
+      "side_effects": "none",
+      "provider": "seo",
+      "requires": [],
+      "input_schema": {
+        "robots_txt": {
+          "type": "string",
+          "label": "robots.txt contents",
+          "required": true,
+          "help": "Paste the full candidate file. An empty value means allow-all."
+        },
+        "test_paths": {
+          "type": "string",
+          "label": "Paths to test",
+          "default": "/",
+          "help": "Comma- or newline-separated paths, e.g. /products, /admin/login?x=1 (max 200)."
+        },
+        "user_agent": {
+          "type": "string",
+          "label": "Crawler to evaluate as",
+          "default": "Googlebot",
+          "help": "Product token such as Googlebot, Bingbot or *."
+        }
+      },
+      "inputs": {
+        "robots_txt": {
+          "type": "string",
+          "label": "robots.txt contents",
+          "required": true,
+          "help": "Paste the full candidate file. An empty value means allow-all."
+        },
+        "test_paths": {
+          "type": "string",
+          "label": "Paths to test",
+          "default": "/",
+          "help": "Comma- or newline-separated paths, e.g. /products, /admin/login?x=1 (max 200)."
+        },
+        "user_agent": {
+          "type": "string",
+          "label": "Crawler to evaluate as",
+          "default": "Googlebot",
+          "help": "Product token such as Googlebot, Bingbot or *."
+        }
+      }
+    },
+    {
+      "id": "seo.preview_redirect_graph",
+      "name": "seo.preview_redirect_graph",
+      "title": "Preview Redirect Graph",
+      "description": "Analyses proposed redirect rules locally: finds loops, self-redirects, conflicting targets, chains (with flattened suggestions) and oversized batches. Zero network egress.",
+      "mode": "read",
+      "impact_tier": "READ_ONLY",
+      "risk": "low",
+      "side_effects": "none",
+      "provider": "seo",
+      "requires": [],
+      "input_schema": {
+        "redirect_rules": {
+          "type": "string",
+          "label": "Redirect rules",
+          "required": true,
+          "help": "One rule per line (or separated by ;): /old -> /new. A JSON list of {source, target} also works (max 5000)."
+        }
+      },
+      "inputs": {
+        "redirect_rules": {
+          "type": "string",
+          "label": "Redirect rules",
+          "required": true,
+          "help": "One rule per line (or separated by ;): /old -> /new. A JSON list of {source, target} also works (max 5000)."
+        }
+      }
+    }
+  ],
+  "manifest_version": 2,
+  "requires": {
+    "network": [],
+    "filesystem_writes": [],
+    "subprocess": false
+  },
+  "provider": "seo"
+}
