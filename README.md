@@ -11,7 +11,7 @@ A 6-module zero-trust autonomous governance airlock suite built for the RailCall
 | **Linear Governance** | `rohan/linear-governance-hub` | `1.3.2` | Anti-drift state locks & deterministic payload hashing |
 | **Stripe Governance** | nohan/stripe-governance` | `1.3.18` | $100 financial ceiling enforcement & airlock refusals |
 | **Zendesk Governance** | `rohan/zendesk-governance` | `1.3.2` | Zero-trust sandbox (no subprocesses, no filesystem writes) |
-| **SEO Traffic Airlock** | nohan/seo-traffic-airlock` | `1.0.0` | Zero-egress preflight gate, RFC 9309 rules audit & directed graph redirect cycle detection |
+| **SEO Traffic Airlock** | `rohan/seo-traffic-airlock` | `0.1.1` | Zero-egress preflight gate, RFC 9309 rules audit & directed graph redirect cycle detection |
 
 
 ## Verification
