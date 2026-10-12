@@ -14,6 +14,13 @@ Deterministic, offline-first preflight deployment airlock for autonomous coding 
 - **Offline Cryptographic Attestation**: Mints an Ed25519-signed receipt for every run that can be independently verified offline via `railcall verify` without network access.
 
 
+
+## Testing & Verification
+
+The engine includes full test coverage validating RFC 9309 precedence, recursive loop detection, and hop-flattening algorithms:
+
+
+
 ## Installation
 
 From the RailCall Marketplace:
