@@ -23,3 +23,9 @@ railcall market module verify ./linear-governance-hub
 railcall market module verify ./stripe-governance
 railcall market module verify ./zendesk-governance
 ```
+
+### `seo-traffic-airlock`
+Deterministic, zero-egress preflight deployment airlock for edge routing and robots directives.
+- **Commands**: `seo.audit_robots_txt`, `seo.preview_redirect_graph`
+- **Sandbox**: `network: none` (Zero-Egress, zero credentials)
+- **Attestation**: Spec v2 tree manifest with Ed25519 receipt verification
